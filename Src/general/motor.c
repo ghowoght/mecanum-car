@@ -54,9 +54,9 @@ void PID_Init(void)
 {
 	for(int i = 0; i < 4; i++)
 	{
-		pid[i].kp							= 0.0018;	
+		pid[i].kp							= 0.0015;	
 		pid[i].ki							= 0;	
-		pid[i].kd							= 0.0008;	
+		pid[i].kd							= 0.0001;	
 		pid[i].err						= 0;	
 		pid[i].err_last				= 0;	
 		pid[i].err_inte				= 0;	
@@ -67,9 +67,9 @@ void PID_Init(void)
 		pid[i].feedback_last	= 0;	
 		pid[i].out						= 0;	
 	}
-	pid_yaw.kp							= 8;	
+	pid_yaw.kp							= 4;	
 	pid_yaw.ki							= 0;	
-	pid_yaw.kd							= 8;	
+	pid_yaw.kd							= 0.2;	
 	pid_yaw.err							= 0;	
 	pid_yaw.err_last				= 0;	
 	pid_yaw.err_inte				= 0;	
@@ -300,7 +300,7 @@ void PID_Controller( u32 dT_us,
 										float inte_lim // »ý·ÖÏÞ·ù
 											)
 {
-	float dT_s = (float)dT_us * 10e-6;
+	float dT_s = (float)dT_us * 1e-6;
 	float freq = safe_div(1.0f, dT_s, 0);
 	
 	pid->err = expect - feedback;

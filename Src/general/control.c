@@ -44,7 +44,7 @@ void Ctrl_Task(u32 dT_ms)
 //		if(state_cnt >= 4000)
 //		{
 //			state_cnt = 0;
-//			state = S6;
+//			state = S9;
 //		}
 		state_cnt += dT_ms;
 		kinematics.exp_vel.linear_x = 0;
