@@ -6,7 +6,7 @@
 #include "dt.h"
 #include "motor.h"
 #include "stdio.h"
-#include "control.h"
+#include "UserCtrl.h"
 
 static u8 lt0_run_flag;
 void INT_1ms_Task()
@@ -59,12 +59,12 @@ static void Loop_Task_8(u32 dT_us)	//20ms执行一次
 	// 如果调度异常，就直接退出
 	if((int)dT_us <= 0)
 		return;
+	/* 电机控制任务 */
 	Motor_Task(dT_us);
 	
 	static int cnt = 0;
 	if(cnt++ >=25)
 	{
-		
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		cnt = 0;
 	}
@@ -76,11 +76,14 @@ static void Loop_Task_9(u32 dT_us)	//50ms执行一次
 	// 如果调度异常，就直接退出
 	if((int)dT_us <= 0)
 		return;
-//	Motor_Task(dT_us);
+
 	u32 dT_ms = 50;
+	/* 用户控制任务 */
 	Ctrl_Task(dT_ms);
 	
+	/* 发送里程计数据 */
 	DataTrans_Odom();
+	/* 打开串口接收中断 */
 	HAL_UART_Receive_IT(&hlpuart1, data_one_byte, 1);
 }
 

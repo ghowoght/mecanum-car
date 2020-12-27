@@ -134,7 +134,7 @@ void Encoder_Task(u32 dT_us)
 void Set_PWM(void)
 {	
 	const int 	ZERO 						= 500; 		// 电机静止时的设置值
-	const float HUNDRED_PERCENT = 500.0;  // 电机满幅输出时的设置值
+	const float HUNDRED_PERCENT = 500.0f;  // 电机满幅输出时的设置值
 	TIM1->CCR2 = -kinematics.pwm.motor_1 * HUNDRED_PERCENT + ZERO;
 	TIM1->CCR3 =  kinematics.pwm.motor_2 * HUNDRED_PERCENT + ZERO;
 	TIM1->CCR1 = -kinematics.pwm.motor_3 * HUNDRED_PERCENT + ZERO;
@@ -208,11 +208,11 @@ void Exp_Speed_Cal(u32 dT_us)
 	float tan_rpm;
 	
 	// 将 m/s 转换为 m/min
-	linear_vel_x_mins = kinematics.exp_vel.linear_x * 60;
-	linear_vel_y_mins = kinematics.exp_vel.linear_y * 60;
+	linear_vel_x_mins = kinematics.exp_vel.linear_x * 60.0f;
+	linear_vel_y_mins = kinematics.exp_vel.linear_y * 60.0f;
 
 	// 将 rad/s 转换为 rad/min
-	angular_vel_z_mins = kinematics.exp_vel.angular_z * 60;
+	angular_vel_z_mins = kinematics.exp_vel.angular_z * 60.0f;
 
 	// 切向速度
 	tangential_vel = angular_vel_z_mins * ((kinematics.wheels_x_distance_ / 2) + (kinematics.wheels_y_distance_ / 2));
@@ -294,7 +294,7 @@ void Fb_Speed_Cal(u32 dT_us)
 	kinematics.odom.vel.angular_z = sensor.Gyro_rad[Z];	
 	
 	kinematics.odom.pose.theta = -imu_data.yaw;	
-	float dT_s = dT_us * 1e-6;
+	float dT_s = dT_us * 1e-6f;
 	float theta_rad = kinematics.odom.pose.theta / 180.0f * 3.1415926535f; // 转化为弧度
 	kinematics.odom.pose.x += (kinematics.odom.vel.linear_x * my_cos(theta_rad) + kinematics.odom.vel.linear_y * my_sin(theta_rad)) * dT_s;
 	kinematics.odom.pose.y += (kinematics.odom.vel.linear_x * my_sin(theta_rad) + kinematics.odom.vel.linear_y * my_cos(theta_rad)) * dT_s;
@@ -318,7 +318,7 @@ void PID_Controller(u32     dT_us,
 										float   inte_lim 		
 										)
 {
-	float dT_s = (float)dT_us * 1e-6;
+	float dT_s = (float)dT_us * 1e-6f;
 	float freq = safe_div(1.0f, dT_s, 0);
 	
 	// 计算偏差

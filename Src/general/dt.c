@@ -1,3 +1,13 @@
+/**
+ * @file dt.c
+ * @brief 数据传输程序
+ * @author Linfu Wei (ghowoght@qq.com)
+ * @version 1.0
+ * @date 2020-12-27
+ * 
+ * @copyright Copyright (c) 2020  WHU-EIS
+ * 
+ */
 #include "dt.h"
 #include "Imu.h"
 #include "data.h"
@@ -5,8 +15,19 @@
 #include "Sensor_Basic.h"
 #include "stdio.h"
 
+/**
+ ************************ 
+ ******* 发送数据 ********
+ ************************
+ */
+
 //#define USE_USB
 
+/**
+ * @brief 数据发送函数
+ * @param  data_to_send     待发送的字节数组
+ * @param  cnt              待发送数据长度
+ */
 void SendData(u8 *data_to_send, u8 cnt)
 {
 #ifdef USE_USB
@@ -16,14 +37,17 @@ void SendData(u8 *data_to_send, u8 cnt)
 #endif
 }
 
-// 联合体，用于数据类型转换
+// 联合体，用于float型和字节数组的互换
 typedef union
 {
 	float data;
 	uint8_t data8[4];
 } data_u;
 
-// 数据发送任务
+/**
+ * @brief 数据发送任务
+ * @param  dT_ms            执行周期
+ */
 void DataTrans_Task(u32 dT_ms)
 {
 	static u32 cnt = 0;
@@ -50,7 +74,9 @@ void DataTrans_Task(u32 dT_ms)
 	
 }
 
-// 发送IMU数据
+/**
+ * @brief 发送IMU数据
+ */
 void DataTrans_IMU(void)
 {
 	uint8_t _cnt = 0;
@@ -91,7 +117,9 @@ void DataTrans_IMU(void)
 	
 }
 
-// 发送小车速度数据
+/**
+ * @brief 发送小车速度数据
+ */
 void DataTrans_Vel(void)
 {
 	uint8_t _cnt = 0;
@@ -131,7 +159,9 @@ void DataTrans_Vel(void)
 	SendData(data_to_send, _cnt); 
 }
 
-// 发送车轮转速
+/**
+ * @brief 发送车轮转速
+ */
 void DataTrans_Wheel(void)
 {
 	uint8_t _cnt = 0;
@@ -178,7 +208,9 @@ void DataTrans_Wheel(void)
 	
 }
 
-// 发送里程计数据
+/**
+ * @brief 发送里程计数据
+ */
 void DataTrans_Odom(void)
 {
 	uint8_t _cnt = 0;
@@ -190,25 +222,25 @@ void DataTrans_Odom(void)
 		
 	// 将要发送的数据赋值给联合体的float成员
 	// 相应的就能更改字节数组成员的值
-	_temp.data = 	odom.vel.linear_x;
+	_temp.data = kinematics.odom.vel.linear_x;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
 	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
 	
-	_temp.data = odom.vel.linear_y;
+	_temp.data = kinematics.odom.vel.linear_y;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
 	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
 	
-	_temp.data = odom.pose.x;//odom.vel.angular_z;
+	_temp.data = kinematics.odom.pose.x;//kinematics.odom.vel.angular_z;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
 	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
 	
-	_temp.data = odom.pose.y;//odom.pose.theta;
+	_temp.data = kinematics.odom.pose.y;//kinematics.odom.pose.theta;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
@@ -225,9 +257,18 @@ void DataTrans_Odom(void)
 	
 }
 
+/**
+ ************************ 
+ ******* 接收数据 ********
+ ************************
+ */
 
 uint8_t data_receive[100];
 uint8_t data_one_byte[1];
+/**
+ * @brief 串口回调函数
+ * @param  huart            串口句柄
+ */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == USART1)
@@ -246,7 +287,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	
 }
 
-// 读取一字节
+/**
+ * @brief 从串口读取单个字节
+ * @param  data             读取的字节数据
+ */
 void GetOneByte(uint8_t data)
 {
 	static u8 state = 0;
@@ -280,7 +324,10 @@ void GetOneByte(uint8_t data)
 	}
 }
 
-// 数据解码
+/**
+ * @brief 数据解码
+ * @param  data             待解码数组
+ */
 void DataDecoder(u8 *data)
 {
 	data_u temp;

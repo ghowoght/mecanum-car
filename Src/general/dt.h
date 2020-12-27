@@ -1,3 +1,13 @@
+/**
+ * @file dt.h
+ * @brief 数据传输程序
+ * @author Linfu Wei (ghowoght@qq.com)
+ * @version 1.0
+ * @date 2020-12-27
+ * 
+ * @copyright Copyright (c) 2020  WHU-EIS
+ * 
+ */
 #ifndef __DT_H_
 #define __DT_H_
 #include "stm32g4xx_hal.h"

@@ -13,11 +13,14 @@
 
 #include "sys.h"
 
-////////////
-// 坐标系 //
-// ↑x		  //
-// |-->y	//
-////////////
+/**
+ * 小车坐标系
+ *   +x
+ *   |
+ * --|--+y
+ *   |
+ * 
+ */
 
 typedef struct 
 {
@@ -81,15 +84,15 @@ typedef struct
 	float err_inte;				// 误差积分
 	float err_diff;				// 误差微分
 
-	float expect;					// 目标值
+	float expect;					// 期望值
 	float expect_last;		// 前一次的目标值
 	float feedback;				// 反馈值
 	float feedback_last;	// 前一次的反馈值
 	
 	float out;						// PID输出
 }pid_st;
-extern pid_st pid[4];
-extern pid_st pid_yaw;
+extern pid_st pid[4];		// 车轮转速控制PID参数
+extern pid_st pid_yaw;  // 方向控制PID参数
 
 void Kinematics_Init(void);
 void Encoder_Task(u32 dT_us);

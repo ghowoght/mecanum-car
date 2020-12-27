@@ -409,6 +409,16 @@
           <GroupName>SRC</GroupName>
           <Files>
             <File>
+              <FileName>sys.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\general\sys.c</FilePath>
+            </File>
+            <File>
+              <FileName>sys.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Src\general\sys.h</FilePath>
+            </File>
+            <File>
               <FileName>data.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\general\data.c</FilePath>
@@ -489,16 +499,6 @@
               <FilePath>..\Src\general\Sensor_Basic.h</FilePath>
             </File>
             <File>
-              <FileName>sys.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\general\sys.c</FilePath>
-            </File>
-            <File>
-              <FileName>sys.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Src\general\sys.h</FilePath>
-            </File>
-            <File>
               <FileName>motor.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\general\motor.c</FilePath>
@@ -509,14 +509,14 @@
               <FilePath>..\Src\general\motor.h</FilePath>
             </File>
             <File>
-              <FileName>control.c</FileName>
+              <FileName>UserCtrl.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\general\control.c</FilePath>
+              <FilePath>..\Src\general\UserCtrl.c</FilePath>
             </File>
             <File>
-              <FileName>control.h</FileName>
+              <FileName>UserCtrl.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\Src\general\control.h</FilePath>
+              <FilePath>..\Src\general\UserCtrl.h</FilePath>
             </File>
           </Files>
         </Group>
