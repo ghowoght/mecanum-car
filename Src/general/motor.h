@@ -1,13 +1,29 @@
+/**
+ * @file motor.h
+ * @brief 
+ * @author Linfu Wei (ghowoght@qq.com)
+ * @version 1.0
+ * @date 2020-12-27
+ * 
+ * @copyright Copyright (c) 2020  WHU-EIS
+ * 
+ */
 #ifndef __MOTOR_H__
 #define __MOTOR_H__
 
 #include "sys.h"
 
+////////////
+// 坐标系 //
+// ↑x		  //
+// |-->y	//
+////////////
+
 typedef struct 
 {
-		volatile float linear_x;  // x轴线速度 m/s
-		volatile float linear_y;  // y轴线速度 m/s
-		volatile float angular_z; // z轴角速度 rad/s 右手准则
+	volatile float linear_x;  // x轴线速度 m/s
+	volatile float linear_y;  // y轴线速度 m/s
+	volatile float angular_z; // z轴角速度 rad/s 右手准则
 }vel_st; 
 
 typedef struct
@@ -20,47 +36,40 @@ typedef struct
 
 typedef struct
 {
-	int motor_1;
-	int motor_2;
-	int motor_3;
-	int motor_4;
-}rpm_st;
-
-typedef struct
-{
-	float x;
-	float y;
-	float theta;
+	float x;		 // x方向坐标
+	float y;		 // y方向坐标
+	float theta; // 方向角
 }pose_st;
 
 typedef struct
 {
-	vel_st vel; // 速度
+	vel_st  vel; 	// 速度
 	pose_st pose; // 位姿
 }odom_st;
-extern odom_st odom;
 
+
+// 小车运动学模型结构体
 typedef struct
 {
-	int max_rpm_; // 每分钟车轮的最大转速
-	float wheels_x_distance_;
-	float wheels_y_distance_;
-	float pwm_res_;
-	float wheel_circumference_;
-	int total_wheels_;
+	int 	max_rpm_; 						// 每分钟车轮的最大转速
+	int 	total_wheels_;				// 车轮数量
+	float wheels_x_distance_;		// x方向上车轮的距离				↑x
+	float wheels_y_distance_;		// y方向上车轮的距离				|-->y
+	float pwm_res_;							// PWM输出最大值
+	float wheel_circumference_;	// 车轮周长
 	
-	vel_st exp_vel;		// 小车整体的目标速度
-	vel_st fb_vel;		// 测量得到的小车整体速度
-	rpm_st exp_wheel_rpm;	// 使用逆运动学模型转换得到的轮子的目标转速
-	motor_st fb_wheel_cmps;	// 编码器反馈值 cm/s
-	rpm_st fb_wheel_rpm;	// 编码器反馈值 rad/min
-	motor_st pwm;	// 电机的PWM输出值
+	vel_st exp_vel;					// 小车的期望速度
+	vel_st fb_vel;					// 测量和解算得到的小车速度
+	motor_st exp_wheel_rpm;	// 使用逆运动学模型转换得到的轮子的目标转速
+	motor_st fb_wheel_cmps;	// 编码器反馈值 单位：cm/s
+	motor_st fb_wheel_rpm;	// 编码器反馈值 单位：rad/min
+	motor_st pwm;						// 电机的PWM输出值
+	
+	odom_st  odom;					// 里程计数据
 }kinematics_st;
 extern kinematics_st kinematics;
 
-
-
-//定义PID
+// PID参数结构体
 typedef struct
 {
 	float kp;							// 比例系数
@@ -85,21 +94,20 @@ extern pid_st pid_yaw;
 void Kinematics_Init(void);
 void Encoder_Task(u32 dT_us);
 
-void Set_Speed(void);
+void Set_PWM(void);
 void PID_Init(void);
 void Motor_Task(u32 dT_us);
-void data_encoder(uint8_t data);
 
-void Exp_Speed_Cal(void);
+void Exp_Speed_Cal(u32 dT_us);
 void Fb_Speed_Cal(u32 dT_us);
 
-void PID_Controller( u32 dT_us,
-										float expect, 
-										float feedback, 
-										pid_st *pid,
+void PID_Controller( u32 dT_us,       // 控制周期
+										float expect,     // 期望值
+										float feedback,   // 反馈值
+										pid_st *pid,      // pid参数结构体
 										float inte_d_lim, // 单次积分限幅
-										float inte_lim // 积分限幅
-											);
+										float inte_lim 		// 积分限幅
+										);
 										
 float Get_MiMx(float x, float min, float max );
 
