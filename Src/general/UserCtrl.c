@@ -29,7 +29,7 @@ void Set_Vel(float linear_x, float linear_y, float angular_z)
 }
 
 /**
- * @brief 有限状态机枚举体
+ * @brief FSM状态枚举体
  */
 enum
 {

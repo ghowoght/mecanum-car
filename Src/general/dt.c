@@ -31,9 +31,19 @@
 void SendData(u8 *data_to_send, u8 cnt)
 {
 #ifdef USE_USB
+	/* 关闭串口接收中断 */
+	HAL_NVIC_DisableIRQ(LPUART1_IRQn);
+	/* 发送数据 */
 	HAL_UART_Transmit(&hlpuart1, data_to_send, cnt, 0xFFFF); 
+	/* 开启串口接收中断 */
+	HAL_NVIC_EnableIRQ(LPUART1_IRQn);
 #else
+	/* 关闭串口接收中断 */
+	HAL_NVIC_DisableIRQ(USART1_IRQn);
+	/* 发送数据 */
 	HAL_UART_Transmit(&huart1, data_to_send, cnt, 0xFFFF); 
+	/* 开启串口接收中断 */
+	HAL_NVIC_EnableIRQ(USART1_IRQn);
 #endif
 }
 

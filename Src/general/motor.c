@@ -51,7 +51,7 @@ float Get_MiMx(float x, float min, float max )
  */
 void Kinematics_Init(void)
 {
-	kinematics.max_rpm_ 						= 330; 				// 空载330rpm
+	kinematics.max_rpm_ 						= 330; 				// 空载转速330rpm
 	kinematics.wheels_x_distance_		= 0.16;
 	kinematics.wheels_y_distance_		= 0.26;
 	kinematics.pwm_res_							= 500;
@@ -159,6 +159,7 @@ void Motor_Task(u32 dT_us)
 									0,																// 单次积分限幅
 									0);																// 积分限幅
 	pid[FL].out  = Get_MiMx(pid[FL].out, -1.0, 1.0); 	// 输出限幅
+	
 	// 右前轮PID控制
 	PID_Controller(	dT_us,  													// 控制周期
 									kinematics.exp_wheel_rpm.motor_2, // 期望值
@@ -167,6 +168,7 @@ void Motor_Task(u32 dT_us)
 									0,																// 单次积分限幅
 									0);																// 积分限幅
 	pid[FR].out  = Get_MiMx(pid[FR].out, -1.0, 1.0); 	// 输出限幅
+	
 	// 左后轮PID控制
 	PID_Controller(	dT_us,  													// 控制周期
 									kinematics.exp_wheel_rpm.motor_3, // 期望值
@@ -175,6 +177,7 @@ void Motor_Task(u32 dT_us)
 									0,																// 单次积分限幅
 									0);																// 积分限幅
 	pid[BL].out  = Get_MiMx(pid[BL].out, -1.0, 1.0); 	// 输出限幅
+	
 	// 右后轮PID控制
 	PID_Controller(	dT_us,  													// 控制周期
 									kinematics.exp_wheel_rpm.motor_4, // 期望值
@@ -184,7 +187,7 @@ void Motor_Task(u32 dT_us)
 									0);																// 积分限幅
 	pid[BR].out  = Get_MiMx(pid[BR].out, -1.0, 1.0); 	// 输出限幅
 	
-	// 将PID控制结果赋值给PWM占空比
+	// 将PID计算结果转换为PWM占空比
 	kinematics.pwm.motor_1 = -pid[FL].out;
 	kinematics.pwm.motor_2 = -pid[FR].out;
 	kinematics.pwm.motor_3 = -pid[BL].out;
