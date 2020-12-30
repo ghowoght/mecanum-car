@@ -21,7 +21,7 @@
  ************************
  */
 
-//#define USE_USB
+#define USE_USB
 
 /**
  * @brief 数据发送函数
@@ -62,18 +62,23 @@ void DataTrans_Task(u32 dT_ms)
 {
 	static u32 cnt = 0;
 	const u32 sent_imu_cnt 	 = 20;
-	const u32 sent_vel_cnt 	 = 30;
-	const u32 sent_wheel_cnt = 50;
+	const u32 sent_odom_cnt 	 = 50;
+	const u32 sent_userdata_cnt 	 = 40;
+	const u32 sent_wheel_cnt = 30;
 	
 	cnt += dT_ms;
 
-	if((cnt % sent_wheel_cnt) == sent_wheel_cnt - 1)
+	if((cnt % sent_odom_cnt) == sent_odom_cnt - 1)
+	{
+		DataTrans_Odom();
+	}
+	else if((cnt % sent_userdata_cnt) == sent_userdata_cnt - 1)
+	{
+		DataTrans_UserData();
+	}
+		else if((cnt % sent_wheel_cnt) == sent_wheel_cnt - 1)
 	{
 		DataTrans_Wheel();
-	}
-	else if((cnt % sent_vel_cnt) == sent_vel_cnt - 1)
-	{
-		DataTrans_Vel();
 	}
 	else if((cnt % sent_imu_cnt) == sent_imu_cnt - 1)
 	{
@@ -94,7 +99,11 @@ void DataTrans_IMU(void)
 	uint8_t data_to_send[100] = {0}; // 待发送的字节数组
 	
 	data_to_send[_cnt++]=0xAA;
-	data_to_send[_cnt++]=0xBB;
+	data_to_send[_cnt++]=0x55;
+	data_to_send[_cnt++]=0x01; 	// 类型
+	data_to_send[_cnt++]=12;		// 长度
+	
+	uint8_t _start = _cnt;
 		
 	// 将要发送的数据赋值给联合体的float成员
 	// 相应的就能更改字节数组成员的值
@@ -117,7 +126,7 @@ void DataTrans_IMU(void)
 	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
 	
 	uint8_t checkout = 0;
-	for(int i = 2; i < _cnt; i++)
+	for(int i = _start; i < _cnt; i++)
 	{
 		checkout += data_to_send[i];
 	}
@@ -179,7 +188,11 @@ void DataTrans_Wheel(void)
 	uint8_t data_to_send[100] = {0}; // 待发送的字节数组
 	
 	data_to_send[_cnt++]=0xAA;
-	data_to_send[_cnt++]=0xDD;
+	data_to_send[_cnt++]=0x55;
+	data_to_send[_cnt++]=0x03; 	// 类型
+	data_to_send[_cnt++]=16;		// 长度
+	
+	uint8_t _start = _cnt;
 		
 	// 将要发送的数据赋值给联合体的float成员
 	// 相应的就能更改字节数组成员的值
@@ -208,7 +221,59 @@ void DataTrans_Wheel(void)
 	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
 	
 	uint8_t checkout = 0;
-	for(int i = 2; i < _cnt; i++)
+	for(int i = _start; i < _cnt; i++)
+	{
+		checkout += data_to_send[i];
+	}
+	data_to_send[_cnt++] = checkout;
+  // 串口发送
+	SendData(data_to_send, _cnt); 
+	
+}
+/**
+ * @brief 发送用户自定义数据
+ */
+void DataTrans_UserData(void)
+{
+	uint8_t _cnt = 0;
+	data_u _temp; // 声明一个联合体实例，使用它将待发送数据转换为字节数组
+	uint8_t data_to_send[100] = {0}; // 待发送的字节数组
+	
+	data_to_send[_cnt++]=0xAA;
+	data_to_send[_cnt++]=0x55;
+	data_to_send[_cnt++]=0x04; 	// 类型
+	data_to_send[_cnt++]=16;		// 长度
+	
+	uint8_t _start = _cnt;
+		
+	// 将要发送的数据赋值给联合体的float成员
+	// 相应的就能更改字节数组成员的值
+	_temp.data = kinematics.fb_wheel_rpm.motor_1;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
+	
+	_temp.data = kinematics.fb_wheel_rpm.motor_2;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
+	
+	_temp.data = kinematics.fb_wheel_rpm.motor_3;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
+	
+	_temp.data = kinematics.fb_wheel_rpm.motor_4;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
+	
+	uint8_t checkout = 0;
+	for(int i = _start; i < _cnt; i++)
 	{
 		checkout += data_to_send[i];
 	}
@@ -228,7 +293,11 @@ void DataTrans_Odom(void)
 	uint8_t data_to_send[100] = {0}; // 待发送的字节数组
 	
 	data_to_send[_cnt++]=0xAA;
-	data_to_send[_cnt++]=0xEE;
+	data_to_send[_cnt++]=0x55;
+	data_to_send[_cnt++]=0x02; 	// 类型
+	data_to_send[_cnt++]=24;		// 长度
+	
+	uint8_t _start = _cnt;
 		
 	// 将要发送的数据赋值给联合体的float成员
 	// 相应的就能更改字节数组成员的值
@@ -239,6 +308,12 @@ void DataTrans_Odom(void)
 	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
 	
 	_temp.data = kinematics.odom.vel.linear_y;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
+	
+	_temp.data = kinematics.odom.vel.angular_z;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
@@ -256,8 +331,14 @@ void DataTrans_Odom(void)
 	data_to_send[_cnt++]=_temp.data8[2];
 	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
 	
+	_temp.data = kinematics.odom.pose.theta;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
+	
 	uint8_t checkout = 0;
-	for(int i = 2; i < _cnt; i++)
+	for(int i = _start; i < _cnt; i++)
 	{
 		checkout += data_to_send[i];
 	}

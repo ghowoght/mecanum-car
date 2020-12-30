@@ -35,7 +35,7 @@ static void Loop_Task_0()
 	IMU_Update_Task(1);
 	
 	/* 数据传输任务 */
-//	DataTrans_Task(1);
+	DataTrans_Task(1);
 	
 	/* LED驱动任务 */
 	LED_1ms_DRV();
@@ -100,7 +100,7 @@ static void Loop_Task_9(u32 dT_us)	//50ms执行一次
 	Ctrl_Task(dT_ms);
 	
 	/* 发送里程计数据 */
-	DataTrans_Odom();
+//	DataTrans_Odom();
 }
 
 /**

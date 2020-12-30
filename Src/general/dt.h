@@ -21,6 +21,7 @@ extern UART_HandleTypeDef hlpuart1;
 extern UART_HandleTypeDef huart1;
 void DataTrans(void);
 void DataTrans_IMU(void);
+void DataTrans_UserData(void);
 void DataTrans_Vel(void);
 void DataTrans_Wheel(void);
 void DataTrans_Odom(void);
