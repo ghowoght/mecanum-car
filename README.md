@@ -1,7 +1,3 @@
-## 系统测试
-
-[https://www.bilibili.com/video/BV1Ez4y1r7yE](https://www.bilibili.com/video/BV1Ez4y1r7yE)
-
 ## 软件流程
 
 <img src="img/01-程序流程图.png" alt="01-程序流程图" style="zoom:80%;" />
