@@ -72,18 +72,18 @@ void DataTrans_Task(u32 dT_ms)
 	{
 		DataTrans_Odom();
 	}
-	else if((cnt % sent_userdata_cnt) == sent_userdata_cnt - 1)
-	{
-		DataTrans_UserData();
-	}
-		else if((cnt % sent_wheel_cnt) == sent_wheel_cnt - 1)
-	{
-		DataTrans_Wheel();
-	}
-	else if((cnt % sent_imu_cnt) == sent_imu_cnt - 1)
-	{
-		DataTrans_IMU();
-	}
+//	else if((cnt % sent_userdata_cnt) == sent_userdata_cnt - 1)
+//	{
+//		DataTrans_UserData();
+//	}
+//		else if((cnt % sent_wheel_cnt) == sent_wheel_cnt - 1)
+//	{
+//		DataTrans_Wheel();
+//	}
+//	else if((cnt % sent_imu_cnt) == sent_imu_cnt - 1)
+//	{
+//		DataTrans_IMU();
+//	}
 	
 	if(cnt>1200) cnt = 0;
 	
@@ -294,48 +294,25 @@ void DataTrans_Odom(void)
 	
 	data_to_send[_cnt++]=0xAA;
 	data_to_send[_cnt++]=0x55;
-	data_to_send[_cnt++]=0x02; 	// 类型
-	data_to_send[_cnt++]=24;		// 长度
 	
 	uint8_t _start = _cnt;
-		
-	// 将要发送的数据赋值给联合体的float成员
-	// 相应的就能更改字节数组成员的值
-	_temp.data = kinematics.odom.vel.linear_x;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
 	
-	_temp.data = kinematics.odom.vel.linear_y;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
+	float datas[] = {	kinematics.odom.vel.linear_x, 
+										kinematics.odom.vel.linear_y, 
+										kinematics.odom.vel.angular_z, 
+										kinematics.odom.pose.theta
+									};
 	
-	_temp.data = kinematics.odom.vel.angular_z;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.odom.pose.x;//kinematics.odom.vel.angular_z;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.odom.pose.y;//kinematics.odom.pose.theta;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.odom.pose.theta;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
+	for(int i = 0; i < sizeof(datas) / sizeof(float); i++)
+	{
+		// 将要发送的数据赋值给联合体的float成员
+		// 相应的就能更改字节数组成员的值
+		_temp.data = datas[i];
+		data_to_send[_cnt++]=_temp.data8[0];
+		data_to_send[_cnt++]=_temp.data8[1];
+		data_to_send[_cnt++]=_temp.data8[2];
+		data_to_send[_cnt++]=_temp.data8[3]; // 最高位
+	}
 	
 	uint8_t checkout = 0;
 	for(int i = _start; i < _cnt; i++)
@@ -388,10 +365,13 @@ void GetOneByte(uint8_t data)
 	static u8 cnt = 0;
 	if(state == 0 && data == 0xAA)
 	{
-		state = 1;
-		
+		state++;
 	}
-	else if(state == 1)
+	else if(state == 1 && data == 0x55)
+	{
+		state++;
+	}
+	else if(state == 2)
 	{
 		data_receive[cnt++] = data;
 		if(cnt >= 13)
@@ -413,32 +393,46 @@ void GetOneByte(uint8_t data)
 			cnt = 0;
 		}
 	}
+	else state = 0;
 }
 
+// 单片机复位指令
+u8 reset_checkout[12] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC};
 /**
  * @brief 数据解码
  * @param  data             待解码数组
  */
 void DataDecoder(u8 *data)
-{
-	data_u temp;
+{	
+	if(flag.robot_sta == MODE_UART_CTRL)
+	{
+		data_u temp;
+		
+		temp.data8[0] = data[0];
+		temp.data8[1] = data[1];
+		temp.data8[2] = data[2];
+		temp.data8[3] = data[3];
+		kinematics.exp_vel.linear_x = temp.data;
+		
+		temp.data8[0] = data[4 + 0];
+		temp.data8[1] = data[4 + 1];
+		temp.data8[2] = data[4 + 2];
+		temp.data8[3] = data[4 + 3];
+		kinematics.exp_vel.linear_y = temp.data;
+		
+		temp.data8[0] = data[8 + 0];
+		temp.data8[1] = data[8 + 1];
+		temp.data8[2] = data[8 + 2];
+		temp.data8[3] = data[8 + 3];
+		kinematics.exp_vel.angular_z = temp.data;	
+	}
 	
-	temp.data8[0] = data[0];
-	temp.data8[1] = data[1];
-	temp.data8[2] = data[2];
-	temp.data8[3] = data[3];
-	kinematics.exp_vel.linear_x = temp.data;
-	
-	temp.data8[0] = data[4 + 0];
-	temp.data8[1] = data[4 + 1];
-	temp.data8[2] = data[4 + 2];
-	temp.data8[3] = data[4 + 3];
-	kinematics.exp_vel.linear_y = temp.data;
-	
-	temp.data8[0] = data[8 + 0];
-	temp.data8[1] = data[8 + 1];
-	temp.data8[2] = data[8 + 2];
-	temp.data8[3] = data[8 + 3];
-	kinematics.exp_vel.angular_z = temp.data;	
+	// 复位指令校验
+	for(int i = 0; i < 12; i++)
+	{
+		if(data[i] != reset_checkout[i])
+			return;
+	}
+	HAL_NVIC_SystemReset();
 }
 

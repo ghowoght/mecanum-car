@@ -100,7 +100,7 @@ void Ctrl_Task(u32 dT_ms)
 		if(state_cnt >= 100)
 		{
 			state_cnt = 0;
-			state = S5;
+			state = S8;
 		}
 	}
 	else if(state == S5)
@@ -137,7 +137,7 @@ void Ctrl_Task(u32 dT_ms)
 	{
 		state_cnt += dT_ms;
 		Set_Vel(0, 0, 1.57);
-		if(state_cnt >= 4000)
+		if(state_cnt >= 1000)
 		{
 			state_cnt = 0;
 			state = S9;

@@ -43,12 +43,21 @@ typedef struct
 	int z;
 }_vector3_st;
 
+enum ROBOT_STATUS
+{
+	MODE_REMOTE_CTRL = 0, 	// 遥控控制
+	MODE_UART_CTRL,				// 串口控制
+};
+
 typedef struct
 {
 	u8 sensor_imu_ok;
 	u8 mems_temperature_ok;
 	
 	u8 motionless;
+	
+	u32 remote_ctrl_timestamp;
+	u8 robot_sta; // 机器人状态
 	
 } _flag_st;
 extern _flag_st flag;

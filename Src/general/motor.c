@@ -52,8 +52,8 @@ float Get_MiMx(float x, float min, float max )
 void Kinematics_Init(void)
 {
 	kinematics.max_rpm_ 						= 330; 				// 空载转速330rpm
-	kinematics.wheels_x_distance_		= 0.16;
-	kinematics.wheels_y_distance_		= 0.26;
+	kinematics.wheels_x_distance_		= 0.17;
+	kinematics.wheels_y_distance_		= 0.19;
 	kinematics.pwm_res_							= 500;
 	kinematics.wheel_circumference_	= 0.2356194;  //轮子周长
 	kinematics.total_wheels_				= 4;
@@ -226,12 +226,12 @@ void Exp_Speed_Cal(u32 dT_us)
 	
 	// 当用姿态传感器测量得到的z轴角速度和用编码器数据解算得到的角速度相差很大时，
 	// 可认为轮子打滑
-//	if(my_abs(sensor.Gyro_rad[Z] - kinematics.fb_vel.angular_z) > 0.5) 
-//	{
-//		tan_rpm = tangential_vel / kinematics.wheel_circumference_;
-//		pid_yaw.out = tan_rpm;
-//	}
-//	else
+	if(my_abs(sensor.Gyro_rad[Z] - kinematics.fb_vel.angular_z) > 0.5) 
+	{
+		pid_yaw.out = tangential_vel / kinematics.wheel_circumference_;
+		tan_rpm = -pid_yaw.out;
+	}
+	else
 	{
 		PID_Controller(	dT_us,  											// 控制周期 us
 										kinematics.exp_vel.angular_z, // 目标值
@@ -243,7 +243,7 @@ void Exp_Speed_Cal(u32 dT_us)
 		pid_yaw.out = Get_MiMx( pid_yaw.out, 
 													 -kinematics.max_rpm_, 
 													  kinematics.max_rpm_);
-		tan_rpm = pid_yaw.out;
+		tan_rpm = -pid_yaw.out;
 	}
 	
 	// 使用逆运动学模型计算车轮的期望速度

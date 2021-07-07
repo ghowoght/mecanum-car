@@ -8,6 +8,7 @@
 #include "stdio.h"
 #include "UserCtrl.h"
 #include "LED.h"
+#include "ppm.h"
 
 static u8 lt0_run_flag;
 
@@ -97,7 +98,10 @@ static void Loop_Task_9(u32 dT_us)	//50ms执行一次
 	u32 dT_ms = 50;
 	
 	/* 用户控制任务 */
-	Ctrl_Task(dT_ms);
+//	Ctrl_Task(dT_ms);
+	
+	/* 遥控任务 */
+	RemoteCtrl_Task(50);
 	
 	/* 发送里程计数据 */
 //	DataTrans_Odom();

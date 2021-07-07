@@ -64,6 +64,8 @@ TIM_HandleTypeDef htim20;
 
 /* USER CODE BEGIN PV */
 
+TIM_HandleTypeDef htim16;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -80,6 +82,7 @@ static void MX_TIM20_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
+static void MX_TIM16_Init(void);
 
 /* USER CODE END PFP */
 
@@ -140,6 +143,8 @@ int main(void)
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 	
+	MX_TIM16_Init();
+	
 	TIM1->CCR1 = 500; // 0~1000,小于500反转，大于500正转
 	TIM1->CCR2 = 500; // 0~1000,小于500反转，大于500正转
 	TIM1->CCR3 = 500; // 0~1000,小于500反转，大于500正转
@@ -164,9 +169,13 @@ int main(void)
 	HAL_TIM_Encoder_Start(&htim3,  TIM_CHANNEL_ALL);
 	HAL_TIM_Encoder_Start(&htim4,  TIM_CHANNEL_ALL);
 	HAL_TIM_Encoder_Start(&htim20, TIM_CHANNEL_ALL);
-		
+	
+	// 开启ppm
+	
+	HAL_TIM_Base_Start(&htim16);
+	HAL_TIM_IC_Start_IT(&htim16, TIM_CHANNEL_1);	
 
-	HAL_Delay(1000);
+	HAL_Delay(50);
 	
   // 初始化ICM20602
 	ICM20602_Initialization();
@@ -498,7 +507,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 16;
+  htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 999;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -801,12 +810,21 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
+
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
+	
+	GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -841,6 +859,52 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+  * @brief TIM16 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM16_Init(void)
+{
+
+  /* USER CODE BEGIN TIM16_Init 0 */
+
+  /* USER CODE END TIM16_Init 0 */
+
+  TIM_IC_InitTypeDef sConfigIC = {0};
+
+  /* USER CODE BEGIN TIM16_Init 1 */
+
+  /* USER CODE END TIM16_Init 1 */
+  htim16.Instance = TIM16;
+  htim16.Init.Prescaler = 169;
+  htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim16.Init.Period = 0xFFFF;
+  htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim16.Init.RepetitionCounter = 0;
+  htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_IC_Init(&htim16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim16, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM16_Init 2 */
+
+  /* USER CODE END TIM16_Init 2 */
+
+}
+
 
 /* USER CODE END 4 */
 
