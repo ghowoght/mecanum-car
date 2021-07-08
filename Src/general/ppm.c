@@ -108,7 +108,7 @@ void RemoteCtrl_Task(uint32_t dT_ms)
 			float linear_y  = (CH[3] - 1500) / 500.0f; 
 			float angular_z = (CH[0] - 1500) / 500.0f * 3.14;
 				
-			Set_Vel(linear_x, linear_y, -angular_z);
+			Set_Vel(linear_x, -linear_y, -angular_z);
 		}
 		else
 			flag.robot_sta = MODE_UART_CTRL;
