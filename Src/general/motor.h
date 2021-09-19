@@ -55,6 +55,8 @@ typedef struct
 typedef struct
 {
 	int 	max_rpm_; 						// 每分钟车轮的最大转速
+	float max_linear_vel_;			// 最大线速度 m/s
+	float max_angular_z_;				// z轴最大角速度 rad/s
 	int 	total_wheels_;				// 车轮数量
 	float wheels_x_distance_;		// x方向上车轮的距离				↑x
 	float wheels_y_distance_;		// y方向上车轮的距离				|-->y

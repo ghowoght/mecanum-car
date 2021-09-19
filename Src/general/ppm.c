@@ -40,7 +40,7 @@ void PPM_Decode(void)
 
 int CH[8] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 int CH_Ori[8] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
-
+int16_t deadzone = 50;
 
 float ppm_deadzone(float x,float ref,float zoom)
 {
@@ -71,7 +71,7 @@ void PPM_Cal(int pulseHigh)
 	if(pulseHigh > 5000) //说明一帧结束
 	{
 		CNT = 0;
-		int16_t deadzone = 50;
+		
 		for(int i = 0; i < 16; i++)
 		{
 			CH[i] = ppm_deadzone(CH_Ori[i], 1500, deadzone);
@@ -104,9 +104,10 @@ void RemoteCtrl_Task(uint32_t dT_ms)
 		if(CH[6] > 1900) // 遥控模式
 		{
 			flag.robot_sta = MODE_REMOTE_CTRL;
-			float linear_x  = (CH[1] - 1500) / 500.0f;
-			float linear_y  = (CH[3] - 1500) / 500.0f; 
-			float angular_z = (CH[0] - 1500) / 500.0f * 3.14;
+			const float maxVel = 1.3f;
+			float linear_x  = (CH[1] - 1500) / (500.0f - deadzone) * kinematics.max_linear_vel_;
+			float linear_y  = (CH[3] - 1500) / (500.0f - deadzone) * kinematics.max_linear_vel_; 
+			float angular_z = (CH[0] - 1500) / (500.0f - deadzone) * kinematics.max_angular_z_;
 				
 			Set_Vel(linear_x, -linear_y, -angular_z);
 		}
