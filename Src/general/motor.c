@@ -52,6 +52,8 @@ float Get_MiMx(float x, float min, float max )
 void Kinematics_Init(void)
 {
 	kinematics.max_rpm_ 						= 330; 				// 空载转速330rpm
+	kinematics.max_linear_vel_			= 1.3f;
+	kinematics.max_angular_z_				= 3.14f;
 	kinematics.wheels_x_distance_		= 0.17;
 	kinematics.wheels_y_distance_		= 0.19;
 	kinematics.pwm_res_							= 500;
@@ -109,10 +111,10 @@ void PID_Init(void)
 void Encoder_Task(u32 dT_us)
 {
 	int encoder[4] = {0};
-	encoder[0] = -(short)TIM2->CNT;		// BL 3
-	encoder[2] =  (short)TIM3->CNT; 	// BR 4
-	encoder[1] =  (short)TIM4->CNT; 	// FR 2
-	encoder[3] = -(short)TIM20->CNT; 	// FL 1
+	encoder[0] =  (short)TIM2->CNT;		// BL 3
+	encoder[2] = -(short)TIM3->CNT; 	// BR 4
+	encoder[1] = -(short)TIM4->CNT; 	// FR 2
+	encoder[3] =  (short)TIM20->CNT; 	// FL 1
 	
 	TIM2->CNT  = 0;
 	TIM3->CNT  = 0;
@@ -122,10 +124,10 @@ void Encoder_Task(u32 dT_us)
 	
 	float dT_s = dT_us * 1e-6;
 	
-	kinematics.fb_wheel_rpm.motor_3 = encoder[0] / 30000.0f / dT_s * 60.0f;
-	kinematics.fb_wheel_rpm.motor_2 = encoder[1] / 30000.0f / dT_s * 60.0f;
-	kinematics.fb_wheel_rpm.motor_4 = encoder[2] / 30000.0f / dT_s * 60.0f;
-  kinematics.fb_wheel_rpm.motor_1 = encoder[3] / 30000.0f / dT_s * 60.0f;
+	kinematics.fb_wheel_rpm.motor_2 = encoder[0] / 30000.0f / dT_s * 60.0f;
+	kinematics.fb_wheel_rpm.motor_3 = encoder[1] / 30000.0f / dT_s * 60.0f;
+	kinematics.fb_wheel_rpm.motor_1 = encoder[2] / 30000.0f / dT_s * 60.0f;
+  kinematics.fb_wheel_rpm.motor_4 = encoder[3] / 30000.0f / dT_s * 60.0f;
 }
 
 /**
@@ -135,10 +137,10 @@ void Set_PWM(void)
 {	
 	const int 	ZERO 						= 500; 		// 电机静止时的设置值
 	const float HUNDRED_PERCENT = 500.0f;  // 电机满幅输出时的设置值
-	TIM1->CCR1 = -kinematics.pwm.motor_3 * HUNDRED_PERCENT + ZERO;
-	TIM1->CCR2 =  kinematics.pwm.motor_4 * HUNDRED_PERCENT + ZERO;
-	TIM1->CCR3 =  kinematics.pwm.motor_2 * HUNDRED_PERCENT + ZERO;
-	TIM1->CCR4 = -kinematics.pwm.motor_1 * HUNDRED_PERCENT + ZERO;
+	TIM1->CCR1 =  kinematics.pwm.motor_2 * HUNDRED_PERCENT + ZERO;
+	TIM1->CCR2 = -kinematics.pwm.motor_1 * HUNDRED_PERCENT + ZERO;
+	TIM1->CCR3 = -kinematics.pwm.motor_3 * HUNDRED_PERCENT + ZERO;
+	TIM1->CCR4 =  kinematics.pwm.motor_4 * HUNDRED_PERCENT + ZERO;
 }
 
 /**
@@ -226,7 +228,10 @@ void Exp_Speed_Cal(u32 dT_us)
 	
 	// 当用姿态传感器测量得到的z轴角速度和用编码器数据解算得到的角速度相差很大时，
 	// 可认为轮子打滑
-	if(my_abs(sensor.Gyro_rad[Z] - kinematics.fb_vel.angular_z) > 0.5) 
+	if((kinematics.exp_vel.linear_x == 0 
+		&& kinematics.exp_vel.linear_y == 0 
+		&& kinematics.exp_vel.angular_z == 0)
+		|| my_abs(sensor.Gyro_rad[Z] - kinematics.fb_vel.angular_z) > 0.5)
 	{
 		pid_yaw.out = tangential_vel / kinematics.wheel_circumference_;
 		tan_rpm = pid_yaw.out;
