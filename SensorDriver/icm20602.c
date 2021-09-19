@@ -29,10 +29,6 @@ int32_t gyro_x_offset, gyro_y_offset, gyro_z_offset; // To remove offset
 
 void ICM20602_GPIO_SPI_Initialization(void)
 {
-	LL_SPI_InitTypeDef SPI_InitStruct = {0};
-	
-	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-
 	LL_GPIO_ResetOutputPin(ICM20602_SPI_CS_PORT, ICM20602_SPI_CS_PIN);
 
 	LL_SPI_Enable(ICM20602_SPI_CHANNEL);
@@ -102,8 +98,6 @@ int ICM20602_Initialization(void)
 {
 
 	uint8_t who_am_i = 0;
-	int16_t accel_raw_data[3] = {0};  // To remove offset
-	int16_t gyro_raw_data[3] = {0};   // To remove offset
 	
 	ICM20602_GPIO_SPI_Initialization();
 	
@@ -166,45 +160,6 @@ int ICM20602_Initialization(void)
 	
 	// Enable Interrupts when data is ready
 	ICM20602_Writebyte(INT_ENABLE, 0x01); // Enable DRDY Interrupt
-	HAL_Delay(50);
-	
-	printf("keep quiet\n");
-	HAL_Delay(500);
-	gyro_x_offset = gyro_y_offset = gyro_z_offset = 0;
-	const int WIN = 500;
-	for(int i = 0; i < WIN; )
-  {
-		if(ICM20602_DataReady())
-		{
-			short gyro[3] = {0};
-			ICM20602_Get3AxisGyroRawData(gyro);
-			gyro_x_offset += gyro[0];
-			gyro_y_offset += gyro[1];
-			gyro_z_offset += gyro[2];
-			i++;
-		}
-	}
-	gyro_x_offset /= WIN;
-	gyro_y_offset /= WIN;
-	gyro_z_offset /= WIN;
-	
-	gyro_x_offset = -gyro_x_offset;
-	gyro_y_offset = -gyro_y_offset;
-	gyro_z_offset = -gyro_z_offset;
-	
-	printf("gyro bias: %d %d %d\n", gyro_x_offset, gyro_y_offset, gyro_z_offset);
-
-	// Remove Gyro X offset
-	ICM20602_Writebyte( XG_OFFS_USRH, gyro_x_offset>>8 );	// gyro x offset high byte
-	ICM20602_Writebyte( XG_OFFS_USRL, gyro_x_offset );	// gyro x offset low byte
-	
-	// Remove Gyro Y offset
-	ICM20602_Writebyte( YG_OFFS_USRH, gyro_y_offset>>8 );	// gyro y offset high byte
-	ICM20602_Writebyte( YG_OFFS_USRL, gyro_y_offset );	// gyro y offset low byte
-	
-	// Remove Gyro Z offset
-	ICM20602_Writebyte( ZG_OFFS_USRH, gyro_z_offset>>8 );	// gyro z offset high byte
-	ICM20602_Writebyte( ZG_OFFS_USRL, gyro_z_offset );	// gyro z offset low byte
 
 	return 0; //OK
 }
@@ -221,21 +176,7 @@ void ICM20602_Get6AxisRawData(short *accel, short *gyro)
 
 	gyro[0] = ((data[8] << 8) | data[9]);
 	gyro[1] = ((data[10] << 8) | data[11]);
-	gyro[2] = ((data[12] << 8) | data[13]);
-	
-//	sensor.Tempreature = ((((int16_t)data[6]) << 8) | data[7]); //tempreature
-//	/*icm20602温度*/
-//	sensor.Tempreature_C = sensor.Tempreature/326.8f + 25 ;//sensor.Tempreature/340.0f + 36.5f;
-
-//	//调整物理坐标轴与软件坐标轴方向定义一致
-//	sensor.Acc_Original[X] = accel[X];
-//	sensor.Acc_Original[Y] = accel[Y];
-//	sensor.Acc_Original[Z] = accel[Z];
-//	
-//	sensor.Gyro_Original[X] = gyro[X];
-//	sensor.Gyro_Original[Y] = gyro[Y];
-//	sensor.Gyro_Original[Z] = gyro[Z];
-	
+	gyro[2] = ((data[12] << 8) | data[13]);	
 }
 
 void ICM20602_Get3AxisGyroRawData(short* gyro)
