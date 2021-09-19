@@ -91,7 +91,7 @@ void motionless_check(u8 dT_ms)
 		
 		g_d_sum[i] = LIMIT(g_d_sum[i],0,200);
 		
-		if( g_d_sum[i] > 10)
+		if( g_d_sum[i] > 5)
 		{
 			t++;
 		}
@@ -99,7 +99,7 @@ void motionless_check(u8 dT_ms)
 		g_old[i] = sensor.Gyro_Original[i];
 	}
 
-	if(t>=2)
+	if(t>=1)
 	{
 		flag.motionless = 0;	
 	}
@@ -229,7 +229,7 @@ void Center_Pos_Set()
 }
 
 static float gyr_f[4][VEC_XYZ],acc_f[4][VEC_XYZ];
-
+#include "motor.h"
 void Sensor_Data_Prepare(u8 dT_ms)
 {	
 	float hz = 0 ;
@@ -238,6 +238,13 @@ void Sensor_Data_Prepare(u8 dT_ms)
 	/*¾²Ö¹¼ì²â*/
 	motionless_check(dT_ms);
 			
+	if(flag.motionless == 1 && kinematics.fb_vel.linear_x == 0 && kinematics.fb_vel.linear_y == 0)
+	{
+		for(u8 i=0;i<3;i++)
+		{ 
+			sensor.Gyro_Original[i] = save.gyro_offset[i] ;
+		}
+	}
 	MPU6050_Data_Offset(); //Ð£×¼º¯Êý
 
 
