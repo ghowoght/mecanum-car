@@ -62,7 +62,7 @@ void DataTrans_Task(u32 dT_ms)
 {
 	static u32 cnt = 0;
 	const u32 sent_imu_cnt 	 = 20;
-	const u32 sent_odom_cnt 	 = 50;
+	const u32 sent_odom_cnt 	 = 20;
 	const u32 sent_userdata_cnt 	 = 40;
 	const u32 sent_wheel_cnt = 30;
 	
