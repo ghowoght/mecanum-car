@@ -9,6 +9,7 @@
 #include "UserCtrl.h"
 #include "LED.h"
 #include "ppm.h"
+#include "AttitudeEstimator.h"
 
 static u8 lt0_run_flag;
 
@@ -33,7 +34,8 @@ static void Loop_Task_0()
 	Sensor_Data_Prepare(1);
 	
 	/* 姿态解算更新 */
-	IMU_Update_Task(1);
+//	IMU_Update_Task(1);
+	ImuUpdate_Task(1);
 	
 	/* 数据传输任务 */
 	DataTrans_Task(1);
@@ -58,7 +60,7 @@ static void Loop_Task_1(u32 dT_us)
 static void Loop_Task_2(u32 dT_us)
 {
 	/* 获取姿态角(ROLL PITCH YAW) */
-	calculate_RPY();
+//	calculate_RPY();
 }
 
 /**
@@ -83,6 +85,8 @@ static void Loop_Task_8(u32 dT_us)
 	
 	/* 电机控制任务 */
 	Motor_Task(dT_us);
+	
+//	printf("rol: %10f pit: %10f yaw: %10f\r\n", imu_data.rol, imu_data.pit, imu_data.yaw);
 }
 
 /**

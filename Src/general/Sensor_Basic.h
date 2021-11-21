@@ -49,6 +49,8 @@ typedef struct
 	float Gyro[VEC_XYZ];
 	float Gyro_deg[VEC_XYZ];    //单位：角度
 	float Gyro_rad[VEC_XYZ];		//单位：弧度
+	float gyro_rps[3];
+	float accel_mpss[3];
 
 	s16 Tempreature;
 	float Tempreature_C;				//单位：℃

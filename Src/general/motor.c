@@ -231,7 +231,7 @@ void Exp_Speed_Cal(u32 dT_us)
 	if((kinematics.exp_vel.linear_x == 0 
 		&& kinematics.exp_vel.linear_y == 0 
 		&& kinematics.exp_vel.angular_z == 0)
-		|| my_abs(sensor.Gyro_rad[Z] - kinematics.fb_vel.angular_z) > 0.5)
+		|| my_abs(sensor.gyro_rps[Z] - kinematics.fb_vel.angular_z) > 0.5)
 	{
 		pid_yaw.out = tangential_vel / kinematics.wheel_circumference_;
 		tan_rpm = pid_yaw.out;
@@ -240,7 +240,7 @@ void Exp_Speed_Cal(u32 dT_us)
 	{
 		PID_Controller(	dT_us,  											// 控制周期 us
 										kinematics.exp_vel.angular_z, // 目标值
-										sensor.Gyro_rad[Z], 					// 反馈值
+										sensor.gyro_rps[Z], 					// 反馈值
 										&pid_yaw, 										// PID参数
 										0,														// 单次积分限幅
 										0);														// 积分限幅
@@ -299,11 +299,12 @@ void Fb_Speed_Cal(u32 dT_us)
 	// 更新里程计数据
 	kinematics.odom.vel.linear_x  = kinematics.fb_vel.linear_x;
 	kinematics.odom.vel.linear_y  = kinematics.fb_vel.linear_y;	
-	kinematics.odom.vel.angular_z = sensor.Gyro_rad[Z];	
+	kinematics.odom.vel.angular_z = sensor.gyro_rps[Z];	
 	
 	kinematics.odom.pose.theta = -imu_data.yaw;	
 	float dT_s = dT_us * 1e-6f;
 	float theta_rad = kinematics.odom.pose.theta / 180.0f * 3.1415926535f; // 转化为弧度
+	// 航位推算
 	kinematics.odom.pose.x += (kinematics.odom.vel.linear_x * my_cos(theta_rad) + kinematics.odom.vel.linear_y * my_sin(theta_rad)) * dT_s;
 	kinematics.odom.pose.y += (kinematics.odom.vel.linear_x * my_sin(theta_rad) + kinematics.odom.vel.linear_y * my_cos(theta_rad)) * dT_s;
 
