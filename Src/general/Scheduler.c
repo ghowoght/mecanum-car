@@ -1,15 +1,12 @@
 #include "Scheduler.h"
-#include "data.h"
 #include "IMU.h"
 #include "Sensor_Basic.h"
-#include "DataCal.h"
 #include "dt.h"
 #include "motor.h"
 #include "stdio.h"
 #include "UserCtrl.h"
 #include "LED.h"
 #include "ppm.h"
-#include "AttitudeEstimator.h"
 
 static u8 lt0_run_flag;
 
@@ -34,7 +31,6 @@ static void Loop_Task_0()
 	Sensor_Data_Prepare(1);
 	
 	/* 姿态解算更新 */
-//	IMU_Update_Task(1);
 	ImuUpdate_Task(1);
 	
 	/* 数据传输任务 */
@@ -42,6 +38,9 @@ static void Loop_Task_0()
 	
 	/* LED驱动任务 */
 	LED_1ms_DRV();
+	
+	
+	
 }
 
 /**
@@ -71,20 +70,18 @@ static void Loop_Task_5(u32 dT_us)
 {	
 	/* LED任务 */
 	LED_Task(11);
+	
 }
 
 /**
  * @brief 20ms任务函数
  * @param  dT_us            执行周期
  */
+uint64_t start = 0;
 static void Loop_Task_8(u32 dT_us)
 {
-	// 如果调度异常，就直接退出
-	if((int)dT_us <= 0)
-		return;
-	
 	/* 电机控制任务 */
-	Motor_Task(dT_us);
+	Motor_Task(20e3);
 	
 //	printf("rol: %10f pit: %10f yaw: %10f\r\n", imu_data.rol, imu_data.pit, imu_data.yaw);
 }
@@ -95,11 +92,7 @@ static void Loop_Task_8(u32 dT_us)
  */
 static void Loop_Task_9(u32 dT_us)	//50ms执行一次
 {
-	// 如果调度异常，就直接退出
-	if((int)dT_us <= 0)
-		return;
-
-	u32 dT_ms = 50;
+	u32 dT_ms = 50; //dT_us * 1e03;
 	
 	/* 用户控制任务 */
 //	Ctrl_Task(dT_ms);
@@ -154,17 +147,16 @@ u8 Main_Task(void)
 	}
 	
 	//循环判断其他所有线程任务，是否应该执行
-	uint32_t time_now,delta_time_us;
+	uint64_t time_now;
+	int delta_time_us;
 	for(index=0;index < TASK_NUM;index++)
 	{
 		//获取系统当前时间，单位us
 		time_now = GetSysRunTimeUs();
-		
+		delta_time_us = (int)(time_now - sched_tasks[index].last_run);
 		//进行判断，如果当前时间减去上一次执行的时间，大于等于该线程的执行周期，则执行线程
-		if(time_now - sched_tasks[index].last_run >= sched_tasks[index].interval_ticks)
+		if(delta_time_us >= sched_tasks[index].interval_ticks)
 		{
-			delta_time_us = (u32)(time_now - sched_tasks[index].last_run);
-
 			//更新线程的执行时间，用于下一次判断
 			sched_tasks[index].last_run = time_now;
 			//执行线程函数，使用的是函数指针
@@ -174,13 +166,14 @@ u8 Main_Task(void)
 	return 0;
 }
 
-static uint64_t SysRunTimeMs = 0; // 当前系统运行时间/ms
+volatile uint64_t SysRunTimeMs = 0; // 当前系统运行时间/ms
 
 /**
  * @brief 滴答定时器回调函数，触发周期：1ms
  */
-void HAL_SYSTICK_Callback(void)
+void HAL_IncTick(void)
 {
+  uwTick += uwTickFreq;
 	SysRunTimeMs++;
 }
 /**
@@ -189,6 +182,6 @@ void HAL_SYSTICK_Callback(void)
  */
 uint32_t GetSysRunTimeUs(void)
 {
-	return SysRunTimeMs * 1000 + (SysTick->LOAD - SysTick->VAL) * 1000 / SysTick->LOAD;
+		return SysRunTimeMs * 1000U + (SysTick->LOAD - SysTick->VAL) * 1000U / SysTick->LOAD;
 }	
 

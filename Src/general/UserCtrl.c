@@ -66,11 +66,11 @@ void Ctrl_Task(u32 dT_ms)
 	else if(state == S1)
 	{
 		state_cnt += dT_ms;
-		Set_Vel(0, 0.5, 0);
-		if(state_cnt >= 1500)
+		Set_Vel(0.4, 0, 0);
+		if(state_cnt >= 2000)
 		{
 			state_cnt = 0;
-			state = S2;
+			state = S9;
 		}
 	}
 	else if(state == S2)

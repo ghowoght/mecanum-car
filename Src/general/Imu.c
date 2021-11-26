@@ -1,73 +1,9 @@
- /******************** (C) COPYRIGHT 2016 ANO Tech ***************************
- * 作者		 ：匿名科创
- * 文件名  ：ANO_IMU.c
- * 描述    ：姿态解算函数
- * 官网    ：www.anotc.com
- * 淘宝    ：anotc.taobao.com
- * 技术Q群 ：190169595
-*****************************************************************************/
 #include "IMU.h"
 #include "Math.h"
-#include "Filter.h"
-
-//#include "ANO_RC.h"
-
-
-
-/*参考坐标，定义为ANO坐标*
-
-俯视，机头方向为x正方向
-     +x
-     |
- +y--|--
-     |
-		 
-*/	
-
-//世界坐标平面XY转平面航向坐标XY
-void w2h_2d_trans(float w[VEC_XYZ],float ref_ax[VEC_XYZ],float h[VEC_XYZ])
-{
-	h[X] =  w[X] *  ref_ax[X]  + w[Y] *ref_ax[Y];
-	h[Y] =  w[X] *(-ref_ax[Y]) + w[Y] *ref_ax[X];
-	
-}
-//平面航向坐标XY转世界坐标平面XY
-void h2w_2d_trans(float h[VEC_XYZ],float ref_ax[VEC_XYZ],float w[VEC_XYZ])
-{
-	w[X] = h[X] *ref_ax[X] + h[Y] *(-ref_ax[Y]);
-	w[Y] = h[X] *ref_ax[Y] + h[Y] *  ref_ax[X];
-	
-}
-
-//载体坐标转世界坐标（ANO约定等同与地理坐标）
-float att_matrix[3][3]; //必须由姿态解算算出该矩阵  旋转矩阵
-void a2w_3d_trans(float a[VEC_XYZ],float w[VEC_XYZ])
-{
-		for(u8 i = 0;i<3;i++)
-		{
-			float temp = 0;
-			for(u8 j = 0;j<3;j++)
-			{
-				
-				temp += a[j] *att_matrix[i][j];
-			}
-			w[i] = temp;
-		}
-}
-
-//float mag_yaw_calculate(float dT,float mag_val[VEC_XYZ],float g_z_vec[VEC_XYZ],float h_mag_val[VEC_XYZ])//
-//{
-
-//	vec_3dh_transition(g_z_vec, mag_val, h_mag_val);
-
-//	return (fast_atan2(h_mag_val[Y], h_mag_val[X]) *57.3f) ;// 	
-//}
-	
-
-
-//#define USE_MAG
-#define USE_LENGTH_LIM
-
+#include <math.h>
+#include <stdint.h>
+#include "Imu.h"
+#include "Math.h"
 
 
 _imu_st imu_data =  {1,0,0,0,
@@ -79,254 +15,283 @@ _imu_st imu_data =  {1,0,0,0,
 					{0,0,0},
 					 0,0,0};
 
-static float vec_err[VEC_XYZ];
-static float vec_err_i[VEC_XYZ];
-static float q0q1,q0q2,q1q1,q1q3,q2q2,q2q3,q3q3,q1q2,q0q3;//q0q0,			
-static float imu_reset_val;		
+float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	/** quaternion of sensor frame relative to auxiliary frame */
+float dq0 = 0.0f, dq1 = 0.0f, dq2 = 0.0f, dq3 = 0.0f;	/** quaternion of sensor frame relative to auxiliary frame */
+float gyro_bias[3] = {0.0f, 0.0f, 0.0f}; /** bias estimation */
+float q0q0, q0q1, q0q2, q0q3;
+float q1q1, q1q2, q1q3;
+float q2q2, q2q3;
+float q3q3;
+int bFilterInit = 0;
 
-static u16 reset_cnt;
-					 
-_imu_state_st imu_state = {1,1,1,1,1,1,1,1};
 
-static float mag_2d_w_vec[2][2] = {{1,0},{1,0}};//地理坐标中，水平面磁场方向恒为南北 (1,0)
-
-float imu_test[3];
-void IMU_update(float dT,_imu_state_st *state,float gyr[VEC_XYZ], s32 acc[VEC_XYZ],_imu_st *imu)
+float invSqrt(float number)
 {
-	
-	static float kp_use = 0,ki_use = 0,mkp_use = 0;
+    volatile long i;
+    volatile float x, y;
+    volatile const float f = 1.5F;
 
-	float acc_norm_l,acc_norm_l_recip,q_norm_l;
-		
-	float acc_norm[VEC_XYZ];
-
-	float d_angle[VEC_XYZ];
-	
-
-	/*Z-Y-X欧拉角转方向余弦矩阵
-  //Pitch Roll  Yaw 分别对应Φ θ Ψ  
-  X轴旋转矩阵
-  R（Φ）
-  {1      0        0  }
-  {0      cosΦ    sinΦ}
-  {0     -sinΦ    cosΦ}
-  
-  Y轴旋转矩阵
-  R（θ）
-  {cosθ     0        -sinθ}
-  {0        1         0   }
-  {sinθ     0        cosθ }
-  
-  Z轴旋转矩阵
-  R（θ）
-  {cosΨ      sinΨ       0}
-  {-sinΨ     cosΨ       0}
-  {0          0         1}
-  
-  由Z-Y-X顺规有:
-  载体坐标系到导航坐标系下旋转矩阵R(b2n)
-  R(b2n) =R(Ψ)^T*R(θ)^T*R(Φ)^T
-  
-  R=
-  {cosΨ*cosθ     -cosΦ*sinΨ+sinΦ*sinθ*cosΨ        sinΨ*sinΦ+cosΦ*sinθ*cosΨ}
-  {cosθ*sinΨ     cosΦ*cosΨ +sinΦ*sinθ*sinΨ       -cosΨ*sinΦ+cosΦ*sinθ*sinΨ}
-  {-sinθ          cosθsin Φ                          cosθcosΦ                   }
-  
-	利用四元数也可以计算出旋转矩阵，且可避免三角函数运算
-	*/
-//		q0q0 = imu->w * imu->w;			
-		q0q1 = imu->w * imu->x;
-		q0q2 = imu->w * imu->y;
-		q1q1 = imu->x * imu->x;
-		q1q3 = imu->x * imu->z;
-		q2q2 = imu->y * imu->y;
-		q2q3 = imu->y * imu->z;
-		q3q3 = imu->z * imu->z;
-		q1q2 = imu->x * imu->y;
-		q0q3 = imu->w * imu->z;
-	
-		if(state->obs_en)
-		{
-			//计算机体坐标下的运动加速度观测量。坐标系为北西天
-			for(u8 i = 0;i<3;i++)
-			{
-				s32 temp = 0;
-				for(u8 j = 0;j<3;j++)
-				{
-					
-					temp += imu->obs_acc_w[j] *att_matrix[j][i];//t[i][j] 转置为 t[j][i]
-				}
-				imu->obs_acc_a[i] = temp;
-				
-				imu->gra_acc[i] = acc[i] - imu->obs_acc_a[i];
-			}
-		}
-		else
-		{
-			for(u8 i = 0;i<3;i++)
-			{			
-				imu->gra_acc[i] = acc[i];
-			}
-		}
-    //
-		acc_norm_l_recip = my_sqrt_reciprocal(my_pow(imu->gra_acc[X]) + my_pow(imu->gra_acc[Y]) + my_pow(imu->gra_acc[Z]));
-		acc_norm_l = safe_div(1,acc_norm_l_recip,0);
-		
-		// 加速度计的读数，单位化。
-		for(u8 i = 0;i<3;i++)
-		{
-			acc_norm[i] = imu->gra_acc[i] *acc_norm_l_recip;
-		}
-
-		
-
-		
-	// 载体坐标下的x方向向量，单位化。
-    att_matrix[0][0] = imu->x_vec[X] = 1 - (2*q2q2 + 2*q3q3);
-    att_matrix[0][1] = imu->x_vec[Y] = 2*q1q2 - 2*q0q3;
-    att_matrix[0][2] = imu->x_vec[Z] = 2*q1q3 + 2*q0q2;
-		
-	// 载体坐标下的y方向向量，单位化。
-    att_matrix[1][0] = imu->y_vec[X] = 2*q1q2 + 2*q0q3;
-    att_matrix[1][1] = imu->y_vec[Y] = 1 - (2*q1q1 + 2*q3q3);
-    att_matrix[1][2] = imu->y_vec[Z] = 2*q2q3 - 2*q0q1;
-		
-    // 载体坐标下的z方向向量（等效重力向量、重力加速度向量），单位化。
-    att_matrix[2][0] = imu->z_vec[X] = 2*q1q3 - 2*q0q2;
-    att_matrix[2][1] = imu->z_vec[Y] = 2*q2q3 + 2*q0q1;
-    att_matrix[2][2] = imu->z_vec[Z] = 1 - (2*q1q1 + 2*q2q2);
-		
-	//水平面方向向量
-	float hx_vec_reci = my_sqrt_reciprocal(my_pow(att_matrix[0][0]) + my_pow(att_matrix[1][0]));
-	imu->hx_vec[X] = att_matrix[0][0] *hx_vec_reci;
-	imu->hx_vec[Y] = att_matrix[1][0] *hx_vec_reci;
-	
-	
-	// 计算载体坐标下的运动加速度。(与姿态解算无关)
-		for(u8 i = 0;i<3;i++)
-		{
-			imu->a_acc[i] = (s32)(acc[i] - 981 *imu->z_vec[i]);
-		}
-		
-    
-		//计算世界坐标下的运动加速度。坐标系为北西天
-		for(u8 i = 0;i<3;i++)
-		{
-			s32 temp = 0;
-			for(u8 j = 0;j<3;j++)
-			{
-				
-				temp += imu->a_acc[j] *att_matrix[i][j];
-			}
-			imu->w_acc[i] = temp;
-		}
-		
-		w2h_2d_trans(imu->w_acc,imu_data.hx_vec,imu->h_acc);
-		
-		
-    // 测量值与等效重力向量的叉积（计算向量误差）。
-    vec_err[X] =  (acc_norm[Y] * imu->z_vec[Z] - imu->z_vec[Y] * acc_norm[Z]);
-    vec_err[Y] = -(acc_norm[X] * imu->z_vec[Z] - imu->z_vec[X] * acc_norm[Z]);
-    vec_err[Z] = -(acc_norm[Y] * imu->z_vec[X] - imu->z_vec[Y] * acc_norm[X]);
-	
-		for(u8 i = 0;i<3;i++)
-		{
-
-			#ifdef USE_EST_DEADZONE	
-			if(state->G_reset == 0 && state->obs_en == 0)
-			{
-				vec_err[i] = my_deadzone(vec_err[i],0,imu->gacc_deadzone[i]);
-			}
-			#endif	
-
-			#ifdef USE_LENGTH_LIM			
-			if(acc_norm_l>1060 || acc_norm_l<900)
-			{
-				vec_err[X] = vec_err[Y] = vec_err[Z] = 0;
-			}
-			#endif
-			//误差积分
-			vec_err_i[i] +=  LIMIT(vec_err[i],-0.1f,0.1f) *dT *ki_use;
-
-		
-	// 构造增量旋转（含融合纠正）。	
-	//    d_angle[X] = (gyr[X] + (vec_err[X]  + vec_err_i[X]) * kp_use - mag_yaw_err *imu->z_vec[X] *kmp_use *RAD_PER_DEG) * dT / 2 ;
-	//    d_angle[Y] = (gyr[Y] + (vec_err[Y]  + vec_err_i[Y]) * kp_use - mag_yaw_err *imu->z_vec[Y] *kmp_use *RAD_PER_DEG) * dT / 2 ;
-	//    d_angle[Z] = (gyr[Z] + (vec_err[Z]  + vec_err_i[Z]) * kp_use - mag_yaw_err *imu->z_vec[Z] *kmp_use *RAD_PER_DEG) * dT / 2 ;
-			
-			d_angle[i] = (gyr[i] + (vec_err[i]  + vec_err_i[i]) * kp_use ) * dT / 2 ;
-		}
-    // 计算姿态。
-
-    imu->w = imu->w            - imu->x*d_angle[X] - imu->y*d_angle[Y] - imu->z*d_angle[Z];
-    imu->x = imu->w*d_angle[X] + imu->x            + imu->y*d_angle[Z] - imu->z*d_angle[Y];
-    imu->y = imu->w*d_angle[Y] - imu->x*d_angle[Z] + imu->y            + imu->z*d_angle[X];
-    imu->z = imu->w*d_angle[Z] + imu->x*d_angle[Y] - imu->y*d_angle[X] + imu->z;
-		
-		q_norm_l = my_sqrt_reciprocal(imu->w*imu->w + imu->x*imu->x + imu->y*imu->y + imu->z*imu->z);
-    imu->w *= q_norm_l;
-    imu->x *= q_norm_l;
-    imu->y *= q_norm_l;
-    imu->z *= q_norm_l;
-		
-  
-  /////////////////////修正开关///////////////////////////		
-		if(state->G_fix_en==0)//重力方向修正
-		{
-			kp_use = 0;//不修正
-		}
-		else
-		{
-			if(state->G_reset == 0)//正常修正
-			{			
-				kp_use = state->gkp;
-				ki_use = state->gki;
-			}
-			else//快速修正，通过增量进行对准
-			{
-				kp_use = 10.0f;
-				ki_use = 0.0f;
-//				imu->est_speed_w[X] = imu->est_speed_w[Y] = 0;
-//				imu->est_acc_w[X] = imu->est_acc_w[Y] = 0;
-//				imu->est_acc_h[X] = imu->est_acc_h[Y] =0;
-				
-				//计算静态误差是否缩小
-//				imu_reset_val += (ABS(vec_err[X]) + ABS(vec_err[Y])) *1000 *dT;
-//				imu_reset_val -= 0.01f;
-				imu_reset_val = (ABS(vec_err[X]) + ABS(vec_err[Y]));
-				
-				imu_reset_val = LIMIT(imu_reset_val,0,1.0f);
-				
-				if((imu_reset_val < 0.05f) && (state->M_reset == 0))
-				{
-					//计时
-					reset_cnt += 2;
-					if(reset_cnt>400)
-					{
-						reset_cnt = 0;
-						state->G_reset = 0;//已经对准，清除复位标记
-					}
-				}
-				else
-				{
-					reset_cnt = 0;
-				}
-			}
-		}
+    x = number * 0.5F;
+    y = number;
+    i = * (( long * ) &y);
+    i = 0x5f375a86 - ( i >> 1 );
+    y = * (( float * ) &i);
+    y = y * ( f - ( x * y * y ) );
+    return y;
 }
 
-static float t_temp;
-void calculate_RPY(void)
+void NonlinearSO3AHRSinit(float ax, float ay, float az, float mx, float my, float mz)
 {
-	///////////////////////输出姿态角///////////////////////////////
-	
-		t_temp = LIMIT(1 - my_pow(att_matrix[2][0]),0,1);
-	
-		if(ABS(imu_data.z_vec[Z])>0.05f)//避免奇点的运算
-		{
-			imu_data.pit =  fast_atan2(att_matrix[2][0],my_sqrt(t_temp))*57.30f;
-			imu_data.rol =  fast_atan2(att_matrix[2][1], att_matrix[2][2])*57.30f; 
-			imu_data.yaw = -fast_atan2(att_matrix[1][0], att_matrix[0][0])*57.30f; 
-		}		
+    float initialRoll, initialPitch;
+    float cosRoll, sinRoll, cosPitch, sinPitch;
+    float magX, magY;
+    float initialHdg, cosHeading, sinHeading;
+
+    initialRoll = fast_atan2(-ay, -az);
+    initialPitch = fast_atan2(ax, -az);
+
+    cosRoll = my_cos(initialRoll);
+    sinRoll = my_sin(initialRoll);
+    cosPitch = my_cos(initialPitch);
+    sinPitch = my_sin(initialPitch);
+
+    magX = mx * cosPitch + my * sinRoll * sinPitch + mz * cosRoll * sinPitch;
+
+    magY = my * cosRoll - mz * sinRoll;
+
+    initialHdg = fast_atan2(-magY, magX);
+
+    cosRoll = my_cos(initialRoll * 0.5f);
+    sinRoll = my_sin(initialRoll * 0.5f);
+
+    cosPitch = my_cos(initialPitch * 0.5f);
+    sinPitch = my_sin(initialPitch * 0.5f);
+
+    cosHeading = my_cos(initialHdg * 0.5f);
+    sinHeading = my_sin(initialHdg * 0.5f);
+
+    q0 = cosRoll * cosPitch * cosHeading + sinRoll * sinPitch * sinHeading;
+    q1 = sinRoll * cosPitch * cosHeading - cosRoll * sinPitch * sinHeading;
+    q2 = cosRoll * sinPitch * cosHeading + sinRoll * cosPitch * sinHeading;
+    q3 = cosRoll * cosPitch * sinHeading - sinRoll * sinPitch * cosHeading;
+
+    // auxillary variables to reduce number of repeated operations, for 1st pass
+    q0q0 = q0 * q0;
+    q0q1 = q0 * q1;
+    q0q2 = q0 * q2;
+    q0q3 = q0 * q3;
+    q1q1 = q1 * q1;
+    q1q2 = q1 * q2;
+    q1q3 = q1 * q3;
+    q2q2 = q2 * q2;
+    q2q3 = q2 * q3;
+    q3q3 = q3 * q3;
 }
 
+void NonlinearSO3AHRSupdate(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, float twoKp, float twoKi, float dt)
+{
+    float recipNorm;
+    float halfex = 0.0f, halfey = 0.0f, halfez = 0.0f;
+
+    // Make filter converge to initial solution faster
+    // This function assumes you are in static position.
+    // WARNING : in case air reboot, this can cause problem. But this is very unlikely happen.
+    if(bFilterInit == 0) {
+        NonlinearSO3AHRSinit(ax,ay,az,mx,my,mz);
+        bFilterInit = 1;
+    }
+
+    //! If magnetometer measurement is available, use it.
+    if(!((mx == 0.0f) && (my == 0.0f) && (mz == 0.0f))) {
+        float hx, hy, hz, bx, bz;
+        float halfwx, halfwy, halfwz;
+
+        // Normalise magnetometer measurement
+        // Will sqrt work better? PX4 system is powerful enough?
+        recipNorm = invSqrt(mx * mx + my * my + mz * mz);
+        mx *= recipNorm;
+        my *= recipNorm;
+        mz *= recipNorm;
+
+        // Reference direction of Earth's magnetic field
+        hx = 2.0f * (mx * (0.5f - q2q2 - q3q3) + my * (q1q2 - q0q3) + mz * (q1q3 + q0q2));
+        hy = 2.0f * (mx * (q1q2 + q0q3) + my * (0.5f - q1q1 - q3q3) + mz * (q2q3 - q0q1));
+        hz = 2.0f * mx * (q1q3 - q0q2) + 2.0f * my * (q2q3 + q0q1) + 2.0f * mz * (0.5f - q1q1 - q2q2);
+        bx = my_sqrt(hx * hx + hy * hy);
+        bz = hz;
+
+        // Estimated direction of magnetic field
+        halfwx = bx * (0.5f - q2q2 - q3q3) + bz * (q1q3 - q0q2);
+        halfwy = bx * (q1q2 - q0q3) + bz * (q0q1 + q2q3);
+        halfwz = bx * (q0q2 + q1q3) + bz * (0.5f - q1q1 - q2q2);
+
+        // Error is sum of cross product between estimated direction and measured direction of field vectors
+        halfex += (my * halfwz - mz * halfwy);
+        halfey += (mz * halfwx - mx * halfwz);
+        halfez += (mx * halfwy - my * halfwx);
+    }
+
+    //增加一个条件：  加速度的模量与G相差不远时。 0.75*G < normAcc < 1.25*G
+    // Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
+    if(!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f)))
+    {
+        float halfvx, halfvy, halfvz;
+
+        // Normalise accelerometer measurement
+        //归一化，得到单位加速度
+        recipNorm = invSqrt(ax * ax + ay * ay + az * az);
+
+        ax *= recipNorm;
+        ay *= recipNorm;
+        az *= recipNorm;
+
+        // Estimated direction of gravity and magnetic field
+        halfvx = q1q3 - q0q2;
+        halfvy = q0q1 + q2q3;
+        halfvz = q0q0 - 0.5f + q3q3;
+
+        // Error is sum of cross product between estimated direction and measured direction of field vectors
+        halfex += ay * halfvz - az * halfvy;
+        halfey += az * halfvx - ax * halfvz;
+        halfez += ax * halfvy - ay * halfvx;
+    }
+
+    // Apply feedback only when valid data has been gathered from the accelerometer or magnetometer
+    if(halfex != 0.0f && halfey != 0.0f && halfez != 0.0f) {
+        // Compute and apply integral feedback if enabled
+        if(twoKi > 0.0f) {
+            gyro_bias[0] += twoKi * halfex * dt;	// integral error scaled by Ki
+            gyro_bias[1] += twoKi * halfey * dt;
+            gyro_bias[2] += twoKi * halfez * dt;
+
+            // apply integral feedback
+            gx += gyro_bias[0];
+            gy += gyro_bias[1];
+            gz += gyro_bias[2];
+        }
+        else {
+            gyro_bias[0] = 0.0f;	// prevent integral windup
+            gyro_bias[1] = 0.0f;
+            gyro_bias[2] = 0.0f;
+        }
+
+        // Apply proportional feedback
+        gx += twoKp * halfex;
+        gy += twoKp * halfey;
+        gz += twoKp * halfez;
+    }
+
+            
+
+    // Time derivative of quaternion. q_dot = 0.5*q\otimes omega.
+    //! q_k = q_{k-1} + dt*\dot{q}
+    //! \dot{q} = 0.5*q \otimes P(\omega)
+    dq0 = 0.5f*(-q1 * gx - q2 * gy - q3 * gz);
+    dq1 = 0.5f*(q0 * gx + q2 * gz - q3 * gy);
+    dq2 = 0.5f*(q0 * gy - q1 * gz + q3 * gx);
+    dq3 = 0.5f*(q0 * gz + q1 * gy - q2 * gx);
+
+    q0 += dt*dq0;
+    q1 += dt*dq1;
+    q2 += dt*dq2;
+    q3 += dt*dq3;
+
+    // Normalise quaternion
+    recipNorm = invSqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+    q0 *= recipNorm;
+    q1 *= recipNorm;
+    q2 *= recipNorm;
+    q3 *= recipNorm;
+
+    // Auxiliary variables to avoid repeated arithmetic
+    q0q0 = q0 * q0;
+    q0q1 = q0 * q1;
+    q0q2 = q0 * q2;
+    q0q3 = q0 * q3;
+    q1q1 = q1 * q1;
+    q1q2 = q1 * q2;
+    q1q3 = q1 * q3;
+    q2q2 = q2 * q2;
+    q2q3 = q2 * q3;
+    q3q3 = q3 * q3;
+}
+
+#include "Sensor_Basic.h"
+float euler[3] = {0.0f, 0.0f, 0.0f};
+float gyro_offsets_sum[3]= { 0.0f, 0.0f, 0.0f };
+float gyroOffset[3]= { 0.0f, 0.0f, 0.0f };
+float accel_offsets_sum[3] = { 0.0f, 0.0f, 0.0f };
+float accelOffset[3]= { 0.0f, 0.0f, 0.0f };
+float Rot_matrix[9] = {1.f,  0.0f,  0.0f, 0.0f,  1.f,  0.0f, 0.0f,  0.0f,  1.f };
+int offset_count = 0;
+uint8_t ready = 0;
+void ImuUpdate_Task(uint32_t dT_ms){
+	if(!ready)
+	{
+			gyro_offsets_sum[0] += sensor.gyro_rps[0];
+			gyro_offsets_sum[1] += sensor.gyro_rps[1];
+			gyro_offsets_sum[2] += sensor.gyro_rps[2];
+			accel_offsets_sum[0] += sensor.accel_mpss[0];
+			accel_offsets_sum[1] += sensor.accel_mpss[1];
+			accel_offsets_sum[2] += sensor.accel_mpss[2];
+			offset_count++;
+			if(offset_count >= 3000)
+			{
+					gyroOffset[0] = gyro_offsets_sum[0] / offset_count;
+					gyroOffset[1] = gyro_offsets_sum[1] / offset_count;
+					gyroOffset[2] = gyro_offsets_sum[2] / offset_count;
+					accelOffset[0] = accel_offsets_sum[0]/offset_count;
+					accelOffset[1] = accel_offsets_sum[1]/offset_count;
+					accelOffset[2] = accel_offsets_sum[2]/offset_count;
+					accelOffset[2]-= CONSTANTS_ONE_G;
+					offset_count=0;
+					gyro_offsets_sum[0]=0;
+					gyro_offsets_sum[1]=0;
+					gyro_offsets_sum[2]=0;
+					ready = 1;
+			}
+			return;
+	}
+	
+	if(flag.motionless)
+		return;
+
+	sensor.gyro_rps[0] -= gyroOffset[0];
+	sensor.gyro_rps[1] -= gyroOffset[1];
+	sensor.gyro_rps[2] -= gyroOffset[2];
+
+	sensor.accel_mpss[0] -= accelOffset[0];
+	sensor.accel_mpss[1] -= accelOffset[1];
+	sensor.accel_mpss[2] -= accelOffset[2];
+
+
+	NonlinearSO3AHRSupdate(sensor.gyro_rps[0], sensor.gyro_rps[1], sensor.gyro_rps[2], 
+									sensor.accel_mpss[0], sensor.accel_mpss[1], sensor.accel_mpss[2],
+									0, 0, 0, 
+									so3_comp_params_Kp,
+									so3_comp_params_Ki,
+									dT_ms * 1e-3);
+	
+	Rot_matrix[0] = q0q0 + q1q1 - q2q2 - q3q3;// 11
+	Rot_matrix[1] = 2.f * (q1*q2 + q0*q3);	// 12
+	Rot_matrix[2] = 2.f * (q1*q3 - q0*q2);	// 13
+	Rot_matrix[3] = 2.f * (q1*q2 - q0*q3);	// 21
+	Rot_matrix[4] = q0q0 - q1q1 + q2q2 - q3q3;// 22
+	Rot_matrix[5] = 2.f * (q2*q3 + q0*q1);	// 23
+	Rot_matrix[6] = 2.f * (q1*q3 + q0*q2);	// 31
+	Rot_matrix[7] = 2.f * (q2*q3 - q0*q1);	// 32
+	Rot_matrix[8] = q0q0 - q1q1 - q2q2 + q3q3;// 33
+	
+	float R2D = 57.2957795f; //180.0f / 3.145926535f;
+	imu_data.rol = fast_atan2(Rot_matrix[5], Rot_matrix[8]) * R2D;	//! Roll
+	imu_data.pit = -my_sin(Rot_matrix[2]) * R2D;									//! Pitch
+	imu_data.yaw = fast_atan2(Rot_matrix[1], Rot_matrix[0]) * R2D;
+
+	if(imu_data.yaw > 0)
+		imu_data.yaw = 180 - imu_data.yaw;
+	else
+		imu_data.yaw = -180 - imu_data.yaw;
+	
+	imu_data.yaw = -imu_data.yaw;
+
+}

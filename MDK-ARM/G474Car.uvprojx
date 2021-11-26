@@ -14,16 +14,16 @@
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
-          <Device>STM32G474VETx</Device>
+          <Device>STM32G474RETx</Device>
           <Vendor>STMicroelectronics</Vendor>
           <PackID>Keil.STM32G4xx_DFP.1.2.0</PackID>
           <PackURL>http://www.keil.com/pack/</PackURL>
           <Cpu>IRAM(0x20000000,0x00020000) IROM(0x08000000,0x00080000) CPUTYPE("Cortex-M4") FPU2 CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
-          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32G4xx_512 -FS08000000 -FL080000 -FP0($$Device:STM32G474VETx$CMSIS\Flash\STM32G4xx_512.FLM))</FlashDriverDll>
+          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32G4xx_512 -FS08000000 -FL080000 -FP0($$Device:STM32G474RETx$CMSIS\Flash\STM32G4xx_512.FLM))</FlashDriverDll>
           <DeviceId>0</DeviceId>
-          <RegisterFile>$$Device:STM32G474VETx$Drivers\CMSIS\Device\ST\STM32G4xx\Include\stm32g4xx.h</RegisterFile>
+          <RegisterFile>$$Device:STM32G474RETx$Drivers\CMSIS\Device\ST\STM32G4xx\Include\stm32g4xx.h</RegisterFile>
           <MemoryEnv></MemoryEnv>
           <Cmp></Cmp>
           <Asm></Asm>
@@ -33,7 +33,7 @@
           <SLE66CMisc></SLE66CMisc>
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
-          <SFDFile>$$Device:STM32G474VETx$CMSIS\SVD\STM32G474xx.svd</SFDFile>
+          <SFDFile>$$Device:STM32G474RETx$CMSIS\SVD\STM32G474xx.svd</SFDFile>
           <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
@@ -419,26 +419,6 @@
               <FilePath>..\Src\general\sys.h</FilePath>
             </File>
             <File>
-              <FileName>data.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\general\data.c</FilePath>
-            </File>
-            <File>
-              <FileName>data.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Src\general\data.h</FilePath>
-            </File>
-            <File>
-              <FileName>DataCal.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\general\DataCal.c</FilePath>
-            </File>
-            <File>
-              <FileName>DataCal.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Src\general\DataCal.h</FilePath>
-            </File>
-            <File>
               <FileName>dt.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\general\dt.c</FilePath>
@@ -447,16 +427,6 @@
               <FileName>dt.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\Src\general\dt.h</FilePath>
-            </File>
-            <File>
-              <FileName>Filter.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\general\Filter.c</FilePath>
-            </File>
-            <File>
-              <FileName>Filter.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Src\general\Filter.h</FilePath>
             </File>
             <File>
               <FileName>Imu.c</FileName>

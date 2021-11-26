@@ -1,9 +1,8 @@
-#ifndef __ANO_SENSOR_BASIC_H
-#define __ANO_SENSOR_BASIC_H
+#ifndef __SENSOR_BASIC_H
+#define __SENSOR_BASIC_H
 
 //==引用
 #include "sys.h"
-#include "data.h"
 
 //==定义
 #define OFFSET_AV_NUM 50
@@ -11,18 +10,65 @@
 #define RANGE_PN2000_TO_RAD  0.001065f
 #define RANGE_PN16G_TO_CMSS  0.4790f
 
-//==数据声明
+enum 
+{
+	ROL,
+	PIT,
+	TAW,
+	VEC_RPY,
+};
+
+enum
+{
+	X,
+	Y,
+	Z,
+	VEC_XYZ,
+};
+
+enum
+{
+ A_X = 0,
+ A_Y ,
+ A_Z ,
+ G_X ,
+ G_Y ,
+ G_Z ,
+ TEM ,
+ MPU_ITEMS ,
+};
+
 typedef struct
 {
-	float center_pos_cm[VEC_XYZ];
-	float gyro_rad[VEC_XYZ];
-	float gyro_rad_old[VEC_XYZ];
-	float gyro_rad_acc[VEC_XYZ];
-	float linear_acc[VEC_XYZ];
-}_center_pos_st;
-extern _center_pos_st center_pos;
+	int x;
+	int y;
+}_vector2_st;
 
+typedef struct
+{
+	int x;
+	int y;
+	int z;
+}_vector3_st;
 
+enum ROBOT_STATUS
+{
+	MODE_REMOTE_CTRL = 0, 	// 遥控控制
+	MODE_UART_CTRL,				// 串口控制
+};
+
+typedef struct
+{
+	u8 sensor_imu_ok;
+	u8 mems_temperature_ok;
+	
+	u8 motionless;
+	
+	u32 remote_ctrl_timestamp;
+	u8 robot_sta; // 机器人状态
+	
+} _flag_st;
+extern _flag_st flag;
 
 typedef struct
 {
@@ -61,12 +107,9 @@ extern _sensor_st sensor;
 
 //==函数声明
 
-//static
-void Center_Pos_Set(void);
-
 //public
 void Sensor_Data_Prepare(u8 dT_ms);
-void Sensor_Basic_Init(void);
+void Sensor_Get(void);
 
 
 

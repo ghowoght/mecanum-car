@@ -12,8 +12,8 @@ typedef struct
 {
 	void(*task_func)(u32 dT_us);
 //	u16 rate_hz;
-	u32 interval_ticks;
-	u32 last_run;
+	int interval_ticks;
+	uint64_t last_run;
 }sched_task_t;
 
 /* Exported constants --------------------------------------------------------*/

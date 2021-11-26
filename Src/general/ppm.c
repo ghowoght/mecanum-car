@@ -9,10 +9,10 @@
  * 
  */
 #include "ppm.h"
-#include "data.h"
 #include "Scheduler.h"
 #include "motor.h"
 #include "UserCtrl.h"
+#include "Sensor_Basic.h"
 
 extern TIM_HandleTypeDef htim16;
 

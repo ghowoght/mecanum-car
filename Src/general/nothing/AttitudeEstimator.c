@@ -275,7 +275,6 @@ void ImuUpdate_Task(uint32_t dT_ms){
 	imu_data.pit = -my_sin(Rot_matrix[2]) * R2D;									//! Pitch
 	imu_data.yaw = fast_atan2(Rot_matrix[1], Rot_matrix[0]) * R2D;
 
-//	imu_data.yaw = imu_data.yaw + 180;
 	if(imu_data.yaw > 0)
 		imu_data.yaw = 180 - imu_data.yaw;
 	else

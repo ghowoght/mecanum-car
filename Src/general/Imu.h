@@ -1,6 +1,9 @@
-#ifndef __ANO_IMU_H
-#define __ANO_IMU_H
-#include "data.h"
+#ifndef _IMU_H
+#define _IMU_H
+
+#include "Sensor_Basic.h"
+#include <math.h>
+#include <stdint.h>
 
 typedef struct
 {
@@ -40,29 +43,37 @@ typedef struct
 } _imu_st ;
 extern _imu_st imu_data;
 
-typedef struct
-{
-	float gkp;			//重力互补融合修正kp系数
-	float gki;			//重力互补融合修正ki系数
-	
-	float mkp;			//罗盘互补融合修正ki系数
-	float drag_p;
-	
-	u8 G_reset;			//重力复位标记
-	u8 M_reset;			//磁力计复位标记
-	u8 G_fix_en;
-	u8 M_fix_en;
-	
-	u8 obs_en;
-}_imu_state_st;
-extern _imu_state_st imu_state;
+#define IMU_FILTER_CUTOFF_FREQ	30.0f
 
-void IMU_duty(float);
-void IMU_update(float dT,_imu_state_st *,float gyr[VEC_XYZ],s32 acc[VEC_XYZ],_imu_st *imu);
-void calculate_RPY(void);
+//校准时间
+#define ACC_CALC_TIME  3000//ms
+#define GYRO_CALC_TIME   3	//s
 
-void w2h_2d_trans(float w[VEC_XYZ],float ref_ax[VEC_XYZ],float h[VEC_XYZ]);
+#define M_PI_F 3.1415926
+#define CONSTANTS_ONE_G					9.80665f		/* m/s^2		*/
+#define CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C		1.225f			/* kg/m^3		*/
+#define CONSTANTS_AIR_GAS_CONST				287.1f 			/* J/(kg * K)		*/
+#define CONSTANTS_ABSOLUTE_NULL_CELSIUS			-273.15f		/* 癈			*/
+#define CONSTANTS_RADIUS_OF_EARTH			6371000			/* meters (m)		*/
 
-void h2w_2d_trans(float h[VEC_XYZ],float ref_ax[VEC_XYZ],float w[VEC_XYZ]);
+#define so3_comp_params_Kp 	2.0f
+#define so3_comp_params_Ki  0.05f
+
+extern float q0, q1, q2, q3;	/** quaternion of sensor frame relative to auxiliary frame */
+extern float dq0, dq1, dq2, dq3;	/** quaternion of sensor frame relative to auxiliary frame */
+extern float gyro_bias[3]; /** bias estimation */
+extern float q0q0, q0q1, q0q2, q0q3;
+extern float q1q1, q1q2, q1q3;
+extern float q2q2, q2q3;
+extern float q3q3;
+extern int bFilterInit;
+
+float invSqrt(float number);
+
+void NonlinearSO3AHRSinit(float ax, float ay, float az, float mx, float my, float mz);
+void NonlinearSO3AHRSupdate(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, float twoKp, float twoKi, float dt);
+
+void ImuUpdate_Task(uint32_t dT_ms);
+
 #endif
 

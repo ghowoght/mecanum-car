@@ -180,9 +180,6 @@ int main(void)
   // 初始化ICM20602
 	ICM20602_Initialization();
 	
-  // 初始化传感器参数
-	Sensor_Basic_Init();
-	
   // 初始化运动学模型
 	Kinematics_Init();
 
