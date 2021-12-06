@@ -301,7 +301,7 @@ void Fb_Speed_Cal(u32 dT_us)
 	kinematics.odom.vel.linear_y  = kinematics.fb_vel.linear_y;	
 	kinematics.odom.vel.angular_z = sensor.gyro_rps[Z];	
 	
-	kinematics.odom.pose.theta = -imu_data.yaw;	
+	kinematics.odom.pose.theta = imu_data.yaw;	
 	float dT_s = dT_us * 1e-6f;
 	float theta_rad = kinematics.odom.pose.theta / 180.0f * 3.1415926535f; // 转化为弧度
 	// 航位推算
