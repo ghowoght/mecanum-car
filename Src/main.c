@@ -32,6 +32,7 @@
 #include "stdio.h"
 #include "motor.h"
 #include "dt.h"
+#include "battery.h"
 
 /* USER CODE END Includes */
 
@@ -185,14 +186,13 @@ int main(void)
 
   // 初始化PID参数
 	PID_Init();
+	
+	// 初始化电压测量功能
+	Battery_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//	uint32_t ADC_Value[50]; 
-//	uint8_t i; 
-//	uint32_t ad1; 
-//	HAL_ADC_Start_DMA(&hadc2,(uint32_t*)&ADC_Value,50); 
 	
   while (1)
   {		

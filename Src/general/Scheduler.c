@@ -7,6 +7,7 @@
 #include "UserCtrl.h"
 #include "LED.h"
 #include "ppm.h"
+#include "battery.h"
 
 static u8 lt0_run_flag;
 
@@ -102,6 +103,9 @@ static void Loop_Task_9(u32 dT_us)	//50ms执行一次
 	
 	/* 发送里程计数据 */
 //	DataTrans_Odom();
+	
+	/* 电池电压测量任务 */
+	Battery_Task(50);
 }
 
 /**

@@ -66,6 +66,7 @@ typedef struct
 	
 	u32 remote_ctrl_timestamp;
 	u8 robot_sta; // 机器人状态
+	u8 low_power; // 电量
 	
 } _flag_st;
 extern _flag_st flag;
