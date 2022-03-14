@@ -13,13 +13,13 @@ void LED_1ms_DRV(void)
 			
 		if( led_cnt < LED_Brightness )
 		{
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
 		}
 		else
 		{
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
 		}
 		
 		if(++led_cnt >= led_accuracy)
@@ -53,7 +53,7 @@ void LED_Task(u8 dT_ms)
 	
 	if(statmp == 0)			//显示机器人状态
 	{
-		if(modtmp <= 2)//flag.robot_sta) // 闪1次：停止状态 闪2次：工作状态
+		if(modtmp < 3 - flag.low_power)//flag.robot_sta) // 闪1次：停止状态 闪2次：工作状态
 		{
 			if(timtmp < 60)
 			{
