@@ -104,10 +104,28 @@ void RemoteCtrl_Task(uint32_t dT_ms)
 		if(CH[6] > 1900) // 遥控模式
 		{
 			flag.robot_sta = MODE_REMOTE_CTRL;
-			const float maxVel = 1.3f;
-			float linear_x  = (CH[1] - 1500) / (500.0f - deadzone) * kinematics.max_linear_vel_;
-			float linear_y  = (CH[3] - 1500) / (500.0f - deadzone) * kinematics.max_linear_vel_; 
-			float angular_z = (CH[0] - 1500) / (500.0f - deadzone) * kinematics.max_angular_z_;
+//			const float maxVel = 1.3f;
+//			float linear_x  = (CH[1] - 1500) / (500.0f - deadzone) * kinematics.max_linear_vel_;
+//			float linear_y  = (CH[3] - 1500) / (500.0f - deadzone) * kinematics.max_linear_vel_; 
+//			float angular_z = (CH[0] - 1500) / (500.0f - deadzone) * kinematics.max_angular_z_;
+			float maxVel = 1.3f;	// 最大线速度
+			float maxOme = 3.14f; // 最大角速度
+			if(CH[5] < 1100){
+				maxVel = 1.3f;
+				maxOme = 3.14f;
+			}
+			else if(CH[5] > 1900){
+				maxVel = 0.4f;
+				maxOme = 2.35f;
+			}
+			else{
+				maxVel = 0.8f;
+				maxOme = 1.57f;
+			}
+			
+			float linear_x  = (CH[1] - 1500) / (500.0f - deadzone) * maxVel;
+			float linear_y  = (CH[3] - 1500) / (500.0f - deadzone) * maxVel; 
+			float angular_z = (CH[0] - 1500) / (500.0f - deadzone) * maxOme;
 				
 			Set_Vel(linear_x, -linear_y, -angular_z);
 		}
