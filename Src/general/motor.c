@@ -111,9 +111,10 @@ void PID_Init(void)
 void Encoder_Task(u32 dT_us)
 {
 	int encoder[4] = {0};
-	encoder[0] =  (short)TIM2->CNT;		// BL 3
-	encoder[2] = -(short)TIM3->CNT; 	// BR 4
-	encoder[1] = -(short)TIM4->CNT; 	// FR 2
+	
+	encoder[0] = -(short)TIM2->CNT;		// BL 3
+	encoder[1] =  (short)TIM3->CNT; 	// BR 4
+	encoder[2] = -(short)TIM4->CNT; 	// FR 2
 	encoder[3] =  (short)TIM20->CNT; 	// FL 1
 	
 	TIM2->CNT  = 0;
@@ -124,9 +125,9 @@ void Encoder_Task(u32 dT_us)
 	
 	float dT_s = dT_us * 1e-6;
 	
-	kinematics.fb_wheel_rpm.motor_2 = encoder[0] / 30000.0f / dT_s * 60.0f;
-	kinematics.fb_wheel_rpm.motor_3 = encoder[1] / 30000.0f / dT_s * 60.0f;
-	kinematics.fb_wheel_rpm.motor_1 = encoder[2] / 30000.0f / dT_s * 60.0f;
+	kinematics.fb_wheel_rpm.motor_1 = encoder[0] / 30000.0f / dT_s * 60.0f;
+	kinematics.fb_wheel_rpm.motor_2 = encoder[1] / 30000.0f / dT_s * 60.0f;
+	kinematics.fb_wheel_rpm.motor_3 = encoder[2] / 30000.0f / dT_s * 60.0f;
   kinematics.fb_wheel_rpm.motor_4 = encoder[3] / 30000.0f / dT_s * 60.0f;
 }
 
@@ -137,9 +138,10 @@ void Set_PWM(void)
 {	
 	const int 	ZERO 						= 500; 		// 电机静止时的设置值
 	const float HUNDRED_PERCENT = 500.0f;  // 电机满幅输出时的设置值
-	TIM1->CCR1 =  kinematics.pwm.motor_2 * HUNDRED_PERCENT + ZERO;
-	TIM1->CCR2 = -kinematics.pwm.motor_1 * HUNDRED_PERCENT + ZERO;
-	TIM1->CCR3 = -kinematics.pwm.motor_3 * HUNDRED_PERCENT + ZERO;
+	
+	TIM1->CCR1 =  kinematics.pwm.motor_1 * HUNDRED_PERCENT + ZERO;
+	TIM1->CCR2 =  kinematics.pwm.motor_2 * HUNDRED_PERCENT + ZERO;
+	TIM1->CCR3 =  kinematics.pwm.motor_3 * HUNDRED_PERCENT + ZERO;
 	TIM1->CCR4 =  kinematics.pwm.motor_4 * HUNDRED_PERCENT + ZERO;
 }
 
@@ -196,7 +198,6 @@ void Motor_Task(u32 dT_us)
 	kinematics.pwm.motor_4 = -pid[BR].out;
 	// 输出到电机
 	Set_PWM();
-
 }
 
 /**
@@ -234,7 +235,7 @@ void Exp_Speed_Cal(u32 dT_us)
 		|| my_abs(sensor.gyro_rps[Z] - kinematics.fb_vel.angular_z) > 0.5)
 	{
 		pid_yaw.out = tangential_vel / kinematics.wheel_circumference_;
-		tan_rpm = pid_yaw.out;
+		
 	}
 	else
 	{
@@ -248,8 +249,9 @@ void Exp_Speed_Cal(u32 dT_us)
 		pid_yaw.out = Get_MiMx( pid_yaw.out, 
 													 -kinematics.max_rpm_, 
 													  kinematics.max_rpm_);
-		tan_rpm = pid_yaw.out;
 	}
+	
+	tan_rpm = pid_yaw.out;
 	
 	// 使用逆运动学模型计算车轮的期望速度
 	// 左前轮电机
