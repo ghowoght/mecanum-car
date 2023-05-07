@@ -66,7 +66,7 @@ TIM_HandleTypeDef htim20;
 /* USER CODE BEGIN PV */
 
 TIM_HandleTypeDef htim16;
-
+TIM_HandleTypeDef htim17;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -84,6 +84,7 @@ static void MX_ADC2_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 static void MX_TIM16_Init(void);
+static void MX_TIM17_Init(void);
 
 /* USER CODE END PFP */
 
@@ -137,15 +138,14 @@ int main(void)
   MX_ADC2_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
+	MX_TIM17_Init();
 	
-	MX_TIM16_Init();
+	TIM1->CCR1 = 500; // 0~1000,Ð¡ï¿½ï¿½500ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½500ï¿½ï¿½×ª
+	TIM1->CCR2 = 500; // 0~1000,Ð¡ï¿½ï¿½500ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½500ï¿½ï¿½×ª
+	TIM1->CCR3 = 500; // 0~1000,Ð¡ï¿½ï¿½500ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½500ï¿½ï¿½×ª
+	TIM1->CCR4 = 500; // 0~1000,Ð¡ï¿½ï¿½500ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½500ï¿½ï¿½×ª
 	
-	TIM1->CCR1 = 500; // 0~1000,Ð¡ÓÚ500·´×ª£¬´óÓÚ500Õý×ª
-	TIM1->CCR2 = 500; // 0~1000,Ð¡ÓÚ500·´×ª£¬´óÓÚ500Õý×ª
-	TIM1->CCR3 = 500; // 0~1000,Ð¡ÓÚ500·´×ª£¬´óÓÚ500Õý×ª
-	TIM1->CCR4 = 500; // 0~1000,Ð¡ÓÚ500·´×ª£¬´óÓÚ500Õý×ª
-	
-	/* ¿ªÊ¼Êä³öPWM */
+	/* ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½PWM */
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
@@ -155,7 +155,7 @@ int main(void)
 	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
 	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_4);
 	
-	/* ¿ªÆô±àÂëÆ÷ */
+	/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 	HAL_TIM_Base_Start(&htim2);
 	HAL_TIM_Base_Start(&htim3);
 	HAL_TIM_Base_Start(&htim4);
@@ -165,23 +165,22 @@ int main(void)
 	HAL_TIM_Encoder_Start(&htim4,  TIM_CHANNEL_ALL);
 	HAL_TIM_Encoder_Start(&htim20, TIM_CHANNEL_ALL);
 	
-	// ¿ªÆôppm
-	
-	HAL_TIM_Base_Start(&htim16);
-	HAL_TIM_IC_Start_IT(&htim16, TIM_CHANNEL_1);	
+	// ï¿½ï¿½ï¿½ï¿½ppm
+	HAL_TIM_Base_Start(&htim17);
+	HAL_TIM_IC_Start_IT(&htim17, TIM_CHANNEL_1);	
 
 	HAL_Delay(50);
 	
-  // ³õÊ¼»¯ICM20602
+  // ï¿½ï¿½Ê¼ï¿½ï¿½ICM20602
 	ICM20602_Initialization();
 	
-  // ³õÊ¼»¯ÔË¶¯Ñ§Ä£ÐÍ
+  // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ë¶ï¿½Ñ§Ä£ï¿½ï¿½
 	Kinematics_Init();
 
-  // ³õÊ¼»¯PID²ÎÊý
+  // ï¿½ï¿½Ê¼ï¿½ï¿½PIDï¿½ï¿½ï¿½ï¿½
 	PID_Init();
 	
-	// ³õÊ¼»¯µçÑ¹²âÁ¿¹¦ÄÜ
+	// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	Battery_Init();
   /* USER CODE END 2 */
 
@@ -400,7 +399,7 @@ static void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-	// ¿ªÆô½ÓÊÕÖÐ¶Ï
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
 	HAL_UART_Receive_IT(&huart1, data_one_byte, 1);
   /* USER CODE END USART1_Init 2 */
 
@@ -895,6 +894,52 @@ static void MX_TIM16_Init(void)
   /* USER CODE END TIM16_Init 2 */
 
 }
+/**
+  * @brief TIM17 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM17_Init(void)
+{
+
+  /* USER CODE BEGIN TIM17_Init 0 */
+
+  /* USER CODE END TIM17_Init 0 */
+
+  TIM_IC_InitTypeDef sConfigIC = {0};
+
+  /* USER CODE BEGIN TIM17_Init 1 */
+
+  /* USER CODE END TIM17_Init 1 */
+  htim17.Instance = TIM17;
+  htim17.Init.Prescaler = 169;
+  htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim17.Init.Period = 65535;
+  htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim17.Init.RepetitionCounter = 0;
+  htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_IC_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim17, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM17_Init 2 */
+
+  /* USER CODE END TIM17_Init 2 */
+
+}
+
 
 
 /* USER CODE END 4 */
