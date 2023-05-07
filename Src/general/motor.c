@@ -108,27 +108,34 @@ void PID_Init(void)
  * @brief 读取编码器数据
  * @param  dT_us            读取时间间隔
  */
+static int last_encoder[4] = {0};
+static int curr_encoder[4] = {0};
+static int encoder_incre[4] = {0};
 void Encoder_Task(u32 dT_us)
 {
-	int encoder[4] = {0};
+	curr_encoder[0] = -(short)TIM2->CNT;	// FL 1
+	curr_encoder[1] =  (short)TIM3->CNT; 	// FR 2 
+	curr_encoder[2] = -(short)TIM4->CNT; 	// BL 3
+	curr_encoder[3] =  (short)TIM20->CNT;	// BR 4 
 	
-	encoder[0] = -(short)TIM2->CNT;		// BL 3
-	encoder[1] =  (short)TIM3->CNT; 	// BR 4
-	encoder[2] = -(short)TIM4->CNT; 	// FR 2
-	encoder[3] =  (short)TIM20->CNT; 	// FL 1
-	
-	TIM2->CNT  = 0;
-	TIM3->CNT  = 0;
-	TIM4->CNT  = 0;
-	TIM20->CNT = 0;
-//	printf("%d %d %d %d\r\n", encoder[0], encoder[1], encoder[2], encoder[3]);
+	for(int i = 0; i < 4; i++){
+		encoder_incre[i] = curr_encoder[i] - last_encoder[i];
+		if(encoder_incre[i] > 10000){
+			encoder_incre[i] += 65535;
+		}
+		else if(encoder_incre[i] < -10000){
+			encoder_incre[i] -= 65535;
+		}
+		last_encoder[i] = curr_encoder[i];	
+	}
+	// printf("enc: %d %d %d %d\r\n", curr_encoder[0], curr_encoder[1], curr_encoder[2], curr_encoder[3]);
+	// printf("inc: %d %d %d %d\r\n", encoder_incre[0], encoder_incre[1], encoder_incre[2], encoder_incre[3]);
 	
 	float dT_s = dT_us * 1e-6;
-	
-	kinematics.fb_wheel_rpm.motor_1 = encoder[0] / 30000.0f / dT_s * 60.0f;
-	kinematics.fb_wheel_rpm.motor_2 = encoder[1] / 30000.0f / dT_s * 60.0f;
-	kinematics.fb_wheel_rpm.motor_3 = encoder[2] / 30000.0f / dT_s * 60.0f;
-  kinematics.fb_wheel_rpm.motor_4 = encoder[3] / 30000.0f / dT_s * 60.0f;
+	kinematics.fb_wheel_rpm.motor_1 = encoder_incre[0] / 30000.0f / dT_s * 60.0f;
+	kinematics.fb_wheel_rpm.motor_2 = encoder_incre[1] / 30000.0f / dT_s * 60.0f;
+	kinematics.fb_wheel_rpm.motor_3 = encoder_incre[2] / 30000.0f / dT_s * 60.0f;
+	kinematics.fb_wheel_rpm.motor_4 = encoder_incre[3] / 30000.0f / dT_s * 60.0f;
 }
 
 /**
