@@ -71,10 +71,10 @@ void Sensor_Get()//1ms
 	for(int i = 0; i < 4; i++){
 		sensor.encoder_incre[i] = curr_encoder[i] - last_encoder[i];
 		if(sensor.encoder_incre[i] > 10000){
-			sensor.encoder_incre[i] += 65535;
+			sensor.encoder_incre[i] -= 65535;
 		}
 		else if(sensor.encoder_incre[i] < -10000){
-			sensor.encoder_incre[i] -= 65535;
+			sensor.encoder_incre[i] += 65535;
 		}
 		last_encoder[i] = curr_encoder[i];	
 	}

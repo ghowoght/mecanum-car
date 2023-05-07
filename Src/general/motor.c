@@ -121,10 +121,10 @@ void Encoder_Task(u32 dT_us)
 	for(int i = 0; i < 4; i++){
 		encoder_incre[i] = curr_encoder[i] - last_encoder[i];
 		if(encoder_incre[i] > 10000){
-			encoder_incre[i] += 65535;
+			encoder_incre[i] -= 65535;
 		}
 		else if(encoder_incre[i] < -10000){
-			encoder_incre[i] -= 65535;
+			encoder_incre[i] += 65535;
 		}
 		last_encoder[i] = curr_encoder[i];	
 	}
