@@ -56,9 +56,26 @@ void Sensor_Data_Prepare(u8 dT_ms)
 }
 
 #include "icm20602.h"
+static int last_encoder[4] = {0};
+static int curr_encoder[4] = {0};
 void Sensor_Get()//1ms
 {
 	/*读取陀螺仪加速度计数据*/
 	ICM20602_Get6AxisRawData(sensor.Acc_Original, sensor.Gyro_Original);
-                             
+	// 获取编码器的增量
+	curr_encoder[0] = -(short)TIM2->CNT;	// FL 1
+	curr_encoder[1] =  (short)TIM3->CNT; 	// FR 2 
+	curr_encoder[2] = -(short)TIM4->CNT; 	// BL 3
+	curr_encoder[3] =  (short)TIM20->CNT;	// BR 4 
+	
+	for(int i = 0; i < 4; i++){
+		sensor.encoder_incre[i] = curr_encoder[i] - last_encoder[i];
+		if(sensor.encoder_incre[i] > 10000){
+			sensor.encoder_incre[i] += 65535;
+		}
+		else if(sensor.encoder_incre[i] < -10000){
+			sensor.encoder_incre[i] -= 65535;
+		}
+		last_encoder[i] = curr_encoder[i];	
+	}
 } 

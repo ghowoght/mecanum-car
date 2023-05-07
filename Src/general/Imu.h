@@ -43,7 +43,7 @@ typedef struct
 } _imu_st ;
 extern _imu_st imu_data;
 
-extern uint16_t imu_data_cnt;
+extern uint32_t imu_data_cnt;
 
 #define IMU_FILTER_CUTOFF_FREQ	30.0f
 

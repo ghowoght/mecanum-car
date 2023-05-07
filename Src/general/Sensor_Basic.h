@@ -90,6 +90,8 @@ typedef struct
 	//原始数据
 	s16 Acc_Original[VEC_XYZ];
 	s16 Gyro_Original[VEC_XYZ];	
+
+	s16 encoder_incre[4]; // 4个编码器的值
 	
 	s16 Acc[VEC_XYZ];
 	s32 Acc_cmss[VEC_XYZ];			//单位：cm/s2

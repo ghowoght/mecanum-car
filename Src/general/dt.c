@@ -112,18 +112,10 @@ void DataTrans_IMU_Raw(void)
 	}
 	
 	// 里程计数据打包
-	_temp.data = kinematics.fb_vel.linear_x;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3];
-	
-	_temp.data = kinematics.fb_vel.linear_y;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3];
-	
+	for(int i = 0; i < 8; i++){
+		data_to_send[_cnt++] = *((uint8_t*)&sensor.encoder_incre + i);
+	}
+
 	uint8_t checkout = 0;
 	for(int i = _start; i < _cnt; i++)
 	{

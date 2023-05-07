@@ -525,16 +525,6 @@
           <GroupName>SensorDriver</GroupName>
           <Files>
             <File>
-              <FileName>Drv_Spi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SensorDriver\Drv_Spi.c</FilePath>
-            </File>
-            <File>
-              <FileName>Drv_Spi.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\SensorDriver\Drv_Spi.h</FilePath>
-            </File>
-            <File>
               <FileName>icm20602.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SensorDriver\icm20602.c</FilePath>
