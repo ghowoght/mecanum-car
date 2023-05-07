@@ -61,36 +61,31 @@ typedef union
 void DataTrans_Task(u32 dT_ms)
 {
 	static u32 cnt = 0;
-	const u32 sent_imu_cnt 	 = 2;
+	const u32 sent_imu_cnt 	 = 1;
 	const u32 sent_odom_cnt 	 = 20;
 	const u32 sent_userdata_cnt 	 = 40;
 	const u32 sent_wheel_cnt = 30;
 	
 	cnt += dT_ms;
 
-	if((cnt % sent_odom_cnt) == sent_odom_cnt - 1)
+	// if((cnt % sent_odom_cnt) == sent_odom_cnt - 1)
+	// {
+	// 	DataTrans_Odom();
+	// }
+	// else if((cnt % sent_userdata_cnt) == sent_userdata_cnt - 1)
+	// {
+	// 	DataTrans_UserData();
+	// }
+	if((cnt % sent_imu_cnt) == sent_imu_cnt - 1)
 	{
-		DataTrans_Odom();
+		DataTrans_IMU_Raw();
 	}
-//	else if((cnt % sent_userdata_cnt) == sent_userdata_cnt - 1)
-//	{
-//		DataTrans_UserData();
-//	}
-//		else if((cnt % sent_wheel_cnt) == sent_wheel_cnt - 1)
-//	{
-//		DataTrans_Wheel();
-//	}
-//	if((cnt % sent_imu_cnt) == sent_imu_cnt - 1)
-//	{
-//		DataTrans_IMU_Raw();
-//	}
 	
 	if(cnt>1200) cnt = 0;
-	
 }
 
 /**
- * @brief 发送IMU原始数据
+ * @brief 发送IMU原始数据, 包含里程计数据
  */
 void DataTrans_IMU_Raw(void)
 {
@@ -99,9 +94,14 @@ void DataTrans_IMU_Raw(void)
 	uint8_t data_to_send[100] = {0};
 	
 	data_to_send[_cnt++]=0xAA;
-	data_to_send[_cnt++]=0x66;
+	data_to_send[_cnt++]=0x55;
 	
 	uint8_t _start = _cnt;
+
+	// IMU数据序号
+	for(int i = 0; i < 4; i++){
+		data_to_send[_cnt++] = *((uint8_t*)(&imu_data_cnt) + i);
+	}
 	
 	// IMU数据打包
 	for(int i = 0; i < 6; i++){
@@ -111,21 +111,18 @@ void DataTrans_IMU_Raw(void)
 		data_to_send[_cnt++] = *((uint8_t*)sensor.Acc_Original + i);
 	}
 	
-	data_to_send[_cnt++] = *((uint8_t*)(&imu_data_cnt));
-	data_to_send[_cnt++] = *((uint8_t*)(&imu_data_cnt) + 1);
-	
 	// 里程计数据打包
-	// _temp.data = kinematics.fb_vel.linear_x;
-	// data_to_send[_cnt++]=_temp.data8[0];
-	// data_to_send[_cnt++]=_temp.data8[1];
-	// data_to_send[_cnt++]=_temp.data8[2];
-	// data_to_send[_cnt++]=_temp.data8[3];
+	_temp.data = kinematics.fb_vel.linear_x;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3];
 	
-	// _temp.data = kinematics.fb_vel.linear_y;
-	// data_to_send[_cnt++]=_temp.data8[0];
-	// data_to_send[_cnt++]=_temp.data8[1];
-	// data_to_send[_cnt++]=_temp.data8[2];
-	// data_to_send[_cnt++]=_temp.data8[3];
+	_temp.data = kinematics.fb_vel.linear_y;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3];
 	
 	uint8_t checkout = 0;
 	for(int i = _start; i < _cnt; i++)
@@ -135,148 +132,6 @@ void DataTrans_IMU_Raw(void)
 	data_to_send[_cnt++] = checkout;
 	// 串口发送
 	SendData(data_to_send, _cnt); 
-	
-}
-/**
- * @brief 发送IMU数据
- */
-void DataTrans_IMU(void)
-{
-	uint8_t _cnt = 0;
-	data_u _temp; // 声明一个联合体实例，使用它将待发送数据转换为字节数组
-	uint8_t data_to_send[100] = {0}; // 待发送的字节数组
-	
-	data_to_send[_cnt++]=0xAA;
-	data_to_send[_cnt++]=0x55;
-	data_to_send[_cnt++]=0x01; 	// 类型
-	data_to_send[_cnt++]=12;		// 长度
-	
-	uint8_t _start = _cnt;
-		
-	// 将要发送的数据赋值给联合体的float成员
-	// 相应的就能更改字节数组成员的值
-	_temp.data = imu_data.rol;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = imu_data.pit;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = imu_data.yaw;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	uint8_t checkout = 0;
-	for(int i = _start; i < _cnt; i++)
-	{
-		checkout += data_to_send[i];
-	}
-	data_to_send[_cnt++] = checkout;
-  	// 串口发送
-	SendData(data_to_send, _cnt); 
-	
-}
-
-/**
- * @brief 发送小车速度数据
- */
-void DataTrans_Vel(void)
-{
-	uint8_t _cnt = 0;
-	data_u _temp; // 声明一个联合体实例，使用它将待发送数据转换为字节数组
-	uint8_t data_to_send[100] = {0}; // 待发送的字节数组
-	
-	data_to_send[_cnt++]=0xAA;
-	data_to_send[_cnt++]=0xCC;
-		
-	// 将要发送的数据赋值给联合体的float成员
-	// 相应的就能更改字节数组成员的值
-	_temp.data = kinematics.fb_vel.linear_x;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.fb_vel.linear_y;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.exp_vel.linear_x;//sensor.Gyro_rad[Z];//kinematics.fb_vel.angular_z;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	uint8_t checkout = 0;
-	for(int i = 2; i < _cnt; i++)
-	{
-		checkout += data_to_send[i];
-	}
-	data_to_send[_cnt++] = checkout;
-  // 串口发送
-	SendData(data_to_send, _cnt); 
-}
-
-/**
- * @brief 发送车轮转速
- */
-void DataTrans_Wheel(void)
-{
-	uint8_t _cnt = 0;
-	data_u _temp; // 声明一个联合体实例，使用它将待发送数据转换为字节数组
-	uint8_t data_to_send[100] = {0}; // 待发送的字节数组
-	
-	data_to_send[_cnt++]=0xAA;
-	data_to_send[_cnt++]=0x55;
-	data_to_send[_cnt++]=0x03; 	// 类型
-	data_to_send[_cnt++]=16;		// 长度
-	
-	uint8_t _start = _cnt;
-		
-	// 将要发送的数据赋值给联合体的float成员
-	// 相应的就能更改字节数组成员的值
-	_temp.data = kinematics.fb_wheel_rpm.motor_1;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.fb_wheel_rpm.motor_2;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.fb_wheel_rpm.motor_3;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.fb_wheel_rpm.motor_4;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	uint8_t checkout = 0;
-	for(int i = _start; i < _cnt; i++)
-	{
-		checkout += data_to_send[i];
-	}
-	data_to_send[_cnt++] = checkout;
-  // 串口发送
-	SendData(data_to_send, _cnt); 
-	
 }
 /**
  * @brief 发送用户自定义数据
@@ -293,33 +148,24 @@ void DataTrans_UserData(void)
 	data_to_send[_cnt++]=16;		// 长度
 	
 	uint8_t _start = _cnt;
+
+	float datas[] = {	kinematics.fb_wheel_rpm.motor_1,
+						kinematics.fb_wheel_rpm.motor_2,
+						kinematics.fb_wheel_rpm.motor_3,
+						kinematics.fb_wheel_rpm.motor_4
+					};
+	
+	for(int i = 0; i < sizeof(datas) / sizeof(float); i++)
+	{
+		// 将要发送的数据赋值给联合体的float成员
+		// 相应的就能更改字节数组成员的值
+		_temp.data = datas[i];
+		data_to_send[_cnt++]=_temp.data8[0];
+		data_to_send[_cnt++]=_temp.data8[1];
+		data_to_send[_cnt++]=_temp.data8[2];
+		data_to_send[_cnt++]=_temp.data8[3]; // 最高位
+	}
 		
-	// 将要发送的数据赋值给联合体的float成员
-	// 相应的就能更改字节数组成员的值
-	_temp.data = kinematics.fb_wheel_rpm.motor_1;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.fb_wheel_rpm.motor_2;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.fb_wheel_rpm.motor_3;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
-	_temp.data = kinematics.fb_wheel_rpm.motor_4;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // 最高位
-	
 	uint8_t checkout = 0;
 	for(int i = _start; i < _cnt; i++)
 	{
@@ -368,9 +214,8 @@ void DataTrans_Odom(void)
 		checkout += data_to_send[i];
 	}
 	data_to_send[_cnt++] = checkout;
-  // 串口发送
+  	// 串口发送
 	SendData(data_to_send, _cnt); 
-	
 }
 
 /**

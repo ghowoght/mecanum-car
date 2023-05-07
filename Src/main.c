@@ -27,7 +27,6 @@
 #include "sys.h"
 #include "icm20602.h"
 #include "Sensor_Basic.h"
-#include "Drv_Spi.h"
 #include "stm32g4xx_hal.h"
 #include "stdio.h"
 #include "motor.h"
@@ -326,7 +325,7 @@ static void MX_LPUART1_UART_Init(void)
 
   /* USER CODE END LPUART1_Init 1 */
   hlpuart1.Instance = LPUART1;
-  hlpuart1.Init.BaudRate = 115200;
+  hlpuart1.Init.BaudRate = 460800;
   hlpuart1.Init.WordLength = UART_WORDLENGTH_8B;
   hlpuart1.Init.StopBits = UART_STOPBITS_1;
   hlpuart1.Init.Parity = UART_PARITY_NONE;
