@@ -1,6 +1,6 @@
 /**
  * @file ppm.c
- * @brief PPMÒ£¿ØÊı¾İ½âÂë
+ * @brief PPMé¥æ§æ•°æ®è§£ç 
  * @author Linfu Wei (ghowoght@qq.com)
  * @version 1.0
  * @date 2021-01-02
@@ -68,7 +68,7 @@ void PPM_Cal(int pulseHigh)
 {
 	HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_2);
 	static uint8_t CNT = 0;
-	if(pulseHigh > 5000) //ËµÃ÷Ò»Ö¡½áÊø
+	if(pulseHigh > 5000) //è¯´æ˜ä¸€å¸§ç»“æŸ
 	{
 		CNT = 0;
 		
@@ -98,18 +98,18 @@ void PPM_Cal(int pulseHigh)
 
 void RemoteCtrl_Task(uint32_t dT_ms)
 {
-	// Á¬½ÓÎ´³¬Ê±
+	// è¿æ¥æœªè¶…æ—¶
 	if(GetSysRunTimeUs() / 1000 - flag.remote_ctrl_timestamp < 1000)
 	{
-		if(CH[6] > 1900) // Ò£¿ØÄ£Ê½
+		if(CH[6] > 1900) // é¥æ§æ¨¡å¼
 		{
 			flag.robot_sta = MODE_REMOTE_CTRL;
 //			const float maxVel = 1.3f;
 //			float linear_x  = (CH[1] - 1500) / (500.0f - deadzone) * kinematics.max_linear_vel_;
 //			float linear_y  = (CH[3] - 1500) / (500.0f - deadzone) * kinematics.max_linear_vel_; 
 //			float angular_z = (CH[0] - 1500) / (500.0f - deadzone) * kinematics.max_angular_z_;
-			float maxVel = 1.3f;	// ×î´óÏßËÙ¶È
-			float maxOme = 3.14f; // ×î´ó½ÇËÙ¶È
+			float maxVel = 1.3f;	// æœ€å¤§çº¿é€Ÿåº¦
+			float maxOme = 3.14f; // æœ€å¤§è§’é€Ÿåº¦
 			if(CH[5] < 1100){
 				maxVel = 1.3f;
 				maxOme = 2.35f;

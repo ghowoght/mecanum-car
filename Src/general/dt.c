@@ -1,6 +1,6 @@
 /**
  * @file dt.c
- * @brief Êı¾İ´«Êä³ÌĞò
+ * @brief æ•°æ®ä¼ è¾“ç¨‹åº
  * @author Linfu Wei (ghowoght@qq.com)
  * @version 1.0
  * @date 2020-12-27
@@ -17,37 +17,37 @@
 
 /**
  ************************ 
- ******* ·¢ËÍÊı¾İ ********
+ ******* å‘é€æ•°æ® ********
  ************************
  */
 
 #define USE_USB
 
 /**
- * @brief Êı¾İ·¢ËÍº¯Êı
- * @param  data_to_send     ´ı·¢ËÍµÄ×Ö½ÚÊı×é
- * @param  cnt              ´ı·¢ËÍÊı¾İ³¤¶È
+ * @brief æ•°æ®å‘é€å‡½æ•°
+ * @param  data_to_send     å¾…å‘é€çš„å­—èŠ‚æ•°ç»„
+ * @param  cnt              å¾…å‘é€æ•°æ®é•¿åº¦
  */
 void SendData(u8 *data_to_send, u8 cnt)
 {
 #ifdef USE_USB
-	/* ¹Ø±Õ´®¿Ú½ÓÊÕÖĞ¶Ï */
+	/* å…³é—­ä¸²å£æ¥æ”¶ä¸­æ–­ */
 	HAL_NVIC_DisableIRQ(LPUART1_IRQn);
-	/* ·¢ËÍÊı¾İ */
+	/* å‘é€æ•°æ® */
 	HAL_UART_Transmit(&hlpuart1, data_to_send, cnt, 0xFFFF); 
-	/* ¿ªÆô´®¿Ú½ÓÊÕÖĞ¶Ï */
+	/* å¼€å¯ä¸²å£æ¥æ”¶ä¸­æ–­ */
 	HAL_NVIC_EnableIRQ(LPUART1_IRQn);
 #else
-	/* ¹Ø±Õ´®¿Ú½ÓÊÕÖĞ¶Ï */
+	/* å…³é—­ä¸²å£æ¥æ”¶ä¸­æ–­ */
 	HAL_NVIC_DisableIRQ(USART1_IRQn);
-	/* ·¢ËÍÊı¾İ */
+	/* å‘é€æ•°æ® */
 	HAL_UART_Transmit(&huart1, data_to_send, cnt, 0xFFFF); 
-	/* ¿ªÆô´®¿Ú½ÓÊÕÖĞ¶Ï */
+	/* å¼€å¯ä¸²å£æ¥æ”¶ä¸­æ–­ */
 	HAL_NVIC_EnableIRQ(USART1_IRQn);
 #endif
 }
 
-// ÁªºÏÌå£¬ÓÃÓÚfloatĞÍºÍ×Ö½ÚÊı×éµÄ»¥»»
+// è”åˆä½“ï¼Œç”¨äºfloatå‹å’Œå­—èŠ‚æ•°ç»„çš„äº’æ¢
 typedef union
 {
 	float data;
@@ -55,13 +55,13 @@ typedef union
 } data_u;
 
 /**
- * @brief Êı¾İ·¢ËÍÈÎÎñ
- * @param  dT_ms            Ö´ĞĞÖÜÆÚ
+ * @brief æ•°æ®å‘é€ä»»åŠ¡
+ * @param  dT_ms            æ‰§è¡Œå‘¨æœŸ
  */
 void DataTrans_Task(u32 dT_ms)
 {
 	static u32 cnt = 0;
-	const u32 sent_imu_cnt 	 = 20;
+	const u32 sent_imu_cnt 	 = 2;
 	const u32 sent_odom_cnt 	 = 20;
 	const u32 sent_userdata_cnt 	 = 40;
 	const u32 sent_wheel_cnt = 30;
@@ -80,9 +80,9 @@ void DataTrans_Task(u32 dT_ms)
 //	{
 //		DataTrans_Wheel();
 //	}
-//	else if((cnt % sent_imu_cnt) == sent_imu_cnt - 1)
+//	if((cnt % sent_imu_cnt) == sent_imu_cnt - 1)
 //	{
-//		DataTrans_IMU();
+//		DataTrans_IMU_Raw();
 //	}
 	
 	if(cnt>1200) cnt = 0;
@@ -90,40 +90,42 @@ void DataTrans_Task(u32 dT_ms)
 }
 
 /**
- * @brief ·¢ËÍIMUÊı¾İ
+ * @brief å‘é€IMUåŸå§‹æ•°æ®
  */
-void DataTrans_IMU(void)
+void DataTrans_IMU_Raw(void)
 {
 	uint8_t _cnt = 0;
-	data_u _temp; // ÉùÃ÷Ò»¸öÁªºÏÌåÊµÀı£¬Ê¹ÓÃËü½«´ı·¢ËÍÊı¾İ×ª»»Îª×Ö½ÚÊı×é
-	uint8_t data_to_send[100] = {0}; // ´ı·¢ËÍµÄ×Ö½ÚÊı×é
+	data_u _temp;
+	uint8_t data_to_send[100] = {0};
 	
 	data_to_send[_cnt++]=0xAA;
-	data_to_send[_cnt++]=0x55;
-	data_to_send[_cnt++]=0x01; 	// ÀàĞÍ
-	data_to_send[_cnt++]=12;		// ³¤¶È
+	data_to_send[_cnt++]=0x66;
 	
 	uint8_t _start = _cnt;
-		
-	// ½«Òª·¢ËÍµÄÊı¾İ¸³Öµ¸øÁªºÏÌåµÄfloat³ÉÔ±
-	// ÏàÓ¦µÄ¾ÍÄÜ¸ü¸Ä×Ö½ÚÊı×é³ÉÔ±µÄÖµ
-	_temp.data = imu_data.rol;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
 	
-	_temp.data = imu_data.pit;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	// IMUæ•°æ®æ‰“åŒ…
+	for(int i = 0; i < 6; i++){
+		data_to_send[_cnt++] = *((uint8_t*)sensor.Gyro_Original + i);
+	}
+	for(int i = 0; i < 6; i++){
+		data_to_send[_cnt++] = *((uint8_t*)sensor.Acc_Original + i);
+	}
 	
-	_temp.data = imu_data.yaw;
-	data_to_send[_cnt++]=_temp.data8[0];
-	data_to_send[_cnt++]=_temp.data8[1];
-	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++] = *((uint8_t*)(&imu_data_cnt));
+	data_to_send[_cnt++] = *((uint8_t*)(&imu_data_cnt) + 1);
+	
+	// é‡Œç¨‹è®¡æ•°æ®æ‰“åŒ…
+	// _temp.data = kinematics.fb_vel.linear_x;
+	// data_to_send[_cnt++]=_temp.data8[0];
+	// data_to_send[_cnt++]=_temp.data8[1];
+	// data_to_send[_cnt++]=_temp.data8[2];
+	// data_to_send[_cnt++]=_temp.data8[3];
+	
+	// _temp.data = kinematics.fb_vel.linear_y;
+	// data_to_send[_cnt++]=_temp.data8[0];
+	// data_to_send[_cnt++]=_temp.data8[1];
+	// data_to_send[_cnt++]=_temp.data8[2];
+	// data_to_send[_cnt++]=_temp.data8[3];
 	
 	uint8_t checkout = 0;
 	for(int i = _start; i < _cnt; i++)
@@ -131,42 +133,88 @@ void DataTrans_IMU(void)
 		checkout += data_to_send[i];
 	}
 	data_to_send[_cnt++] = checkout;
-  // ´®¿Ú·¢ËÍ
+	// ä¸²å£å‘é€
+	SendData(data_to_send, _cnt); 
+	
+}
+/**
+ * @brief å‘é€IMUæ•°æ®
+ */
+void DataTrans_IMU(void)
+{
+	uint8_t _cnt = 0;
+	data_u _temp; // å£°æ˜ä¸€ä¸ªè”åˆä½“å®ä¾‹ï¼Œä½¿ç”¨å®ƒå°†å¾…å‘é€æ•°æ®è½¬æ¢ä¸ºå­—èŠ‚æ•°ç»„
+	uint8_t data_to_send[100] = {0}; // å¾…å‘é€çš„å­—èŠ‚æ•°ç»„
+	
+	data_to_send[_cnt++]=0xAA;
+	data_to_send[_cnt++]=0x55;
+	data_to_send[_cnt++]=0x01; 	// ç±»å‹
+	data_to_send[_cnt++]=12;		// é•¿åº¦
+	
+	uint8_t _start = _cnt;
+		
+	// å°†è¦å‘é€çš„æ•°æ®èµ‹å€¼ç»™è”åˆä½“çš„floatæˆå‘˜
+	// ç›¸åº”çš„å°±èƒ½æ›´æ”¹å­—èŠ‚æ•°ç»„æˆå‘˜çš„å€¼
+	_temp.data = imu_data.rol;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
+	
+	_temp.data = imu_data.pit;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
+	
+	_temp.data = imu_data.yaw;
+	data_to_send[_cnt++]=_temp.data8[0];
+	data_to_send[_cnt++]=_temp.data8[1];
+	data_to_send[_cnt++]=_temp.data8[2];
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
+	
+	uint8_t checkout = 0;
+	for(int i = _start; i < _cnt; i++)
+	{
+		checkout += data_to_send[i];
+	}
+	data_to_send[_cnt++] = checkout;
+  	// ä¸²å£å‘é€
 	SendData(data_to_send, _cnt); 
 	
 }
 
 /**
- * @brief ·¢ËÍĞ¡³µËÙ¶ÈÊı¾İ
+ * @brief å‘é€å°è½¦é€Ÿåº¦æ•°æ®
  */
 void DataTrans_Vel(void)
 {
 	uint8_t _cnt = 0;
-	data_u _temp; // ÉùÃ÷Ò»¸öÁªºÏÌåÊµÀı£¬Ê¹ÓÃËü½«´ı·¢ËÍÊı¾İ×ª»»Îª×Ö½ÚÊı×é
-	uint8_t data_to_send[100] = {0}; // ´ı·¢ËÍµÄ×Ö½ÚÊı×é
+	data_u _temp; // å£°æ˜ä¸€ä¸ªè”åˆä½“å®ä¾‹ï¼Œä½¿ç”¨å®ƒå°†å¾…å‘é€æ•°æ®è½¬æ¢ä¸ºå­—èŠ‚æ•°ç»„
+	uint8_t data_to_send[100] = {0}; // å¾…å‘é€çš„å­—èŠ‚æ•°ç»„
 	
 	data_to_send[_cnt++]=0xAA;
 	data_to_send[_cnt++]=0xCC;
 		
-	// ½«Òª·¢ËÍµÄÊı¾İ¸³Öµ¸øÁªºÏÌåµÄfloat³ÉÔ±
-	// ÏàÓ¦µÄ¾ÍÄÜ¸ü¸Ä×Ö½ÚÊı×é³ÉÔ±µÄÖµ
+	// å°†è¦å‘é€çš„æ•°æ®èµ‹å€¼ç»™è”åˆä½“çš„floatæˆå‘˜
+	// ç›¸åº”çš„å°±èƒ½æ›´æ”¹å­—èŠ‚æ•°ç»„æˆå‘˜çš„å€¼
 	_temp.data = kinematics.fb_vel.linear_x;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	_temp.data = kinematics.fb_vel.linear_y;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	_temp.data = kinematics.exp_vel.linear_x;//sensor.Gyro_rad[Z];//kinematics.fb_vel.angular_z;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	uint8_t checkout = 0;
 	for(int i = 2; i < _cnt; i++)
@@ -174,51 +222,51 @@ void DataTrans_Vel(void)
 		checkout += data_to_send[i];
 	}
 	data_to_send[_cnt++] = checkout;
-  // ´®¿Ú·¢ËÍ
+  // ä¸²å£å‘é€
 	SendData(data_to_send, _cnt); 
 }
 
 /**
- * @brief ·¢ËÍ³µÂÖ×ªËÙ
+ * @brief å‘é€è½¦è½®è½¬é€Ÿ
  */
 void DataTrans_Wheel(void)
 {
 	uint8_t _cnt = 0;
-	data_u _temp; // ÉùÃ÷Ò»¸öÁªºÏÌåÊµÀı£¬Ê¹ÓÃËü½«´ı·¢ËÍÊı¾İ×ª»»Îª×Ö½ÚÊı×é
-	uint8_t data_to_send[100] = {0}; // ´ı·¢ËÍµÄ×Ö½ÚÊı×é
+	data_u _temp; // å£°æ˜ä¸€ä¸ªè”åˆä½“å®ä¾‹ï¼Œä½¿ç”¨å®ƒå°†å¾…å‘é€æ•°æ®è½¬æ¢ä¸ºå­—èŠ‚æ•°ç»„
+	uint8_t data_to_send[100] = {0}; // å¾…å‘é€çš„å­—èŠ‚æ•°ç»„
 	
 	data_to_send[_cnt++]=0xAA;
 	data_to_send[_cnt++]=0x55;
-	data_to_send[_cnt++]=0x03; 	// ÀàĞÍ
-	data_to_send[_cnt++]=16;		// ³¤¶È
+	data_to_send[_cnt++]=0x03; 	// ç±»å‹
+	data_to_send[_cnt++]=16;		// é•¿åº¦
 	
 	uint8_t _start = _cnt;
 		
-	// ½«Òª·¢ËÍµÄÊı¾İ¸³Öµ¸øÁªºÏÌåµÄfloat³ÉÔ±
-	// ÏàÓ¦µÄ¾ÍÄÜ¸ü¸Ä×Ö½ÚÊı×é³ÉÔ±µÄÖµ
+	// å°†è¦å‘é€çš„æ•°æ®èµ‹å€¼ç»™è”åˆä½“çš„floatæˆå‘˜
+	// ç›¸åº”çš„å°±èƒ½æ›´æ”¹å­—èŠ‚æ•°ç»„æˆå‘˜çš„å€¼
 	_temp.data = kinematics.fb_wheel_rpm.motor_1;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	_temp.data = kinematics.fb_wheel_rpm.motor_2;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	_temp.data = kinematics.fb_wheel_rpm.motor_3;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	_temp.data = kinematics.fb_wheel_rpm.motor_4;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	uint8_t checkout = 0;
 	for(int i = _start; i < _cnt; i++)
@@ -226,51 +274,51 @@ void DataTrans_Wheel(void)
 		checkout += data_to_send[i];
 	}
 	data_to_send[_cnt++] = checkout;
-  // ´®¿Ú·¢ËÍ
+  // ä¸²å£å‘é€
 	SendData(data_to_send, _cnt); 
 	
 }
 /**
- * @brief ·¢ËÍÓÃ»§×Ô¶¨ÒåÊı¾İ
+ * @brief å‘é€ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
  */
 void DataTrans_UserData(void)
 {
 	uint8_t _cnt = 0;
-	data_u _temp; // ÉùÃ÷Ò»¸öÁªºÏÌåÊµÀı£¬Ê¹ÓÃËü½«´ı·¢ËÍÊı¾İ×ª»»Îª×Ö½ÚÊı×é
-	uint8_t data_to_send[100] = {0}; // ´ı·¢ËÍµÄ×Ö½ÚÊı×é
+	data_u _temp; // å£°æ˜ä¸€ä¸ªè”åˆä½“å®ä¾‹ï¼Œä½¿ç”¨å®ƒå°†å¾…å‘é€æ•°æ®è½¬æ¢ä¸ºå­—èŠ‚æ•°ç»„
+	uint8_t data_to_send[100] = {0}; // å¾…å‘é€çš„å­—èŠ‚æ•°ç»„
 	
 	data_to_send[_cnt++]=0xAA;
 	data_to_send[_cnt++]=0x55;
-	data_to_send[_cnt++]=0x04; 	// ÀàĞÍ
-	data_to_send[_cnt++]=16;		// ³¤¶È
+	data_to_send[_cnt++]=0x04; 	// ç±»å‹
+	data_to_send[_cnt++]=16;		// é•¿åº¦
 	
 	uint8_t _start = _cnt;
 		
-	// ½«Òª·¢ËÍµÄÊı¾İ¸³Öµ¸øÁªºÏÌåµÄfloat³ÉÔ±
-	// ÏàÓ¦µÄ¾ÍÄÜ¸ü¸Ä×Ö½ÚÊı×é³ÉÔ±µÄÖµ
+	// å°†è¦å‘é€çš„æ•°æ®èµ‹å€¼ç»™è”åˆä½“çš„floatæˆå‘˜
+	// ç›¸åº”çš„å°±èƒ½æ›´æ”¹å­—èŠ‚æ•°ç»„æˆå‘˜çš„å€¼
 	_temp.data = kinematics.fb_wheel_rpm.motor_1;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	_temp.data = kinematics.fb_wheel_rpm.motor_2;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	_temp.data = kinematics.fb_wheel_rpm.motor_3;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	_temp.data = kinematics.fb_wheel_rpm.motor_4;
 	data_to_send[_cnt++]=_temp.data8[0];
 	data_to_send[_cnt++]=_temp.data8[1];
 	data_to_send[_cnt++]=_temp.data8[2];
-	data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+	data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	
 	uint8_t checkout = 0;
 	for(int i = _start; i < _cnt; i++)
@@ -278,19 +326,19 @@ void DataTrans_UserData(void)
 		checkout += data_to_send[i];
 	}
 	data_to_send[_cnt++] = checkout;
-  // ´®¿Ú·¢ËÍ
+  // ä¸²å£å‘é€
 	SendData(data_to_send, _cnt); 
 	
 }
 
 /**
- * @brief ·¢ËÍÀï³Ì¼ÆÊı¾İ
+ * @brief å‘é€é‡Œç¨‹è®¡æ•°æ®
  */
 void DataTrans_Odom(void)
 {
 	uint8_t _cnt = 0;
-	data_u _temp; // ÉùÃ÷Ò»¸öÁªºÏÌåÊµÀı£¬Ê¹ÓÃËü½«´ı·¢ËÍÊı¾İ×ª»»Îª×Ö½ÚÊı×é
-	uint8_t data_to_send[100] = {0}; // ´ı·¢ËÍµÄ×Ö½ÚÊı×é
+	data_u _temp; // å£°æ˜ä¸€ä¸ªè”åˆä½“å®ä¾‹ï¼Œä½¿ç”¨å®ƒå°†å¾…å‘é€æ•°æ®è½¬æ¢ä¸ºå­—èŠ‚æ•°ç»„
+	uint8_t data_to_send[100] = {0}; // å¾…å‘é€çš„å­—èŠ‚æ•°ç»„
 	
 	data_to_send[_cnt++]=0xAA;
 	data_to_send[_cnt++]=0x55;
@@ -305,13 +353,13 @@ void DataTrans_Odom(void)
 	
 	for(int i = 0; i < sizeof(datas) / sizeof(float); i++)
 	{
-		// ½«Òª·¢ËÍµÄÊı¾İ¸³Öµ¸øÁªºÏÌåµÄfloat³ÉÔ±
-		// ÏàÓ¦µÄ¾ÍÄÜ¸ü¸Ä×Ö½ÚÊı×é³ÉÔ±µÄÖµ
+		// å°†è¦å‘é€çš„æ•°æ®èµ‹å€¼ç»™è”åˆä½“çš„floatæˆå‘˜
+		// ç›¸åº”çš„å°±èƒ½æ›´æ”¹å­—èŠ‚æ•°ç»„æˆå‘˜çš„å€¼
 		_temp.data = datas[i];
 		data_to_send[_cnt++]=_temp.data8[0];
 		data_to_send[_cnt++]=_temp.data8[1];
 		data_to_send[_cnt++]=_temp.data8[2];
-		data_to_send[_cnt++]=_temp.data8[3]; // ×î¸ßÎ»
+		data_to_send[_cnt++]=_temp.data8[3]; // æœ€é«˜ä½
 	}
 	
 	uint8_t checkout = 0;
@@ -320,44 +368,44 @@ void DataTrans_Odom(void)
 		checkout += data_to_send[i];
 	}
 	data_to_send[_cnt++] = checkout;
-  // ´®¿Ú·¢ËÍ
+  // ä¸²å£å‘é€
 	SendData(data_to_send, _cnt); 
 	
 }
 
 /**
  ************************ 
- ******* ½ÓÊÕÊı¾İ ********
+ ******* æ¥æ”¶æ•°æ® ********
  ************************
  */
 
 uint8_t data_receive[100];
 uint8_t data_one_byte[1];
 /**
- * @brief ´®¿Ú»Øµ÷º¯Êı
- * @param  huart            ´®¿Ú¾ä±ú
+ * @brief ä¸²å£å›è°ƒå‡½æ•°
+ * @param  huart            ä¸²å£å¥æŸ„
  */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == USART1)
 	{
 		GetOneByte(data_one_byte[0]);
-		// ÔÚÍê³ÉÒ»´Î½ÓÊÕºó£¬´®¿ÚÖĞ¶Ï»á±»¹Ø±Õ£¬ĞèÒªÔÙ´Î´ò¿ª
+		// åœ¨å®Œæˆä¸€æ¬¡æ¥æ”¶åï¼Œä¸²å£ä¸­æ–­ä¼šè¢«å…³é—­ï¼Œéœ€è¦å†æ¬¡æ‰“å¼€
 		HAL_UART_Receive_IT(&huart1, data_one_byte, 1);
 	}	
 	
 	if(huart->Instance == LPUART1)
 	{
 		GetOneByte(data_one_byte[0]);
-		// ÔÚÍê³ÉÒ»´Î½ÓÊÕºó£¬´®¿ÚÖĞ¶Ï»á±»¹Ø±Õ£¬ĞèÒªÔÙ´Î´ò¿ª
+		// åœ¨å®Œæˆä¸€æ¬¡æ¥æ”¶åï¼Œä¸²å£ä¸­æ–­ä¼šè¢«å…³é—­ï¼Œéœ€è¦å†æ¬¡æ‰“å¼€
 		HAL_UART_Receive_IT(&hlpuart1, data_one_byte, 1);
 	}	
 	
 }
 
 /**
- * @brief ´Ó´®¿Ú¶ÁÈ¡µ¥¸ö×Ö½Ú
- * @param  data             ¶ÁÈ¡µÄ×Ö½ÚÊı¾İ
+ * @brief ä»ä¸²å£è¯»å–å•ä¸ªå­—èŠ‚
+ * @param  data             è¯»å–çš„å­—èŠ‚æ•°æ®
  */
 void GetOneByte(uint8_t data)
 {
@@ -376,7 +424,7 @@ void GetOneByte(uint8_t data)
 		data_receive[cnt++] = data;
 		if(cnt >= 13)
 		{
-			// Ğ£Ñé
+			// æ ¡éªŒ
 			u8 checkout = 0;
 			for(int i = 0; i < cnt - 1; i++)
 			{
@@ -384,7 +432,7 @@ void GetOneByte(uint8_t data)
 			}
 			if(checkout == data_receive[cnt - 1])
 			{
-				// Ğ£ÑéÍ¨¹ı£¬½øĞĞ½âÂë
+				// æ ¡éªŒé€šè¿‡ï¼Œè¿›è¡Œè§£ç 
 				DataDecoder(data_receive);
 				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 			}
@@ -396,11 +444,11 @@ void GetOneByte(uint8_t data)
 	else state = 0;
 }
 
-// µ¥Æ¬»ú¸´Î»Ö¸Áî
+// å•ç‰‡æœºå¤ä½æŒ‡ä»¤
 u8 reset_checkout[12] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC};
 /**
- * @brief Êı¾İ½âÂë
- * @param  data             ´ı½âÂëÊı×é
+ * @brief æ•°æ®è§£ç 
+ * @param  data             å¾…è§£ç æ•°ç»„
  */
 void DataDecoder(u8 *data)
 {	
@@ -427,7 +475,7 @@ void DataDecoder(u8 *data)
 		kinematics.exp_vel.angular_z = temp.data;	
 	}
 	
-	// ¸´Î»Ö¸ÁîĞ£Ñé
+	// å¤ä½æŒ‡ä»¤æ ¡éªŒ
 	for(int i = 0; i < 12; i++)
 	{
 		if(data[i] != reset_checkout[i])

@@ -38,19 +38,19 @@ void Sensor_Data_Prepare(u8 dT_ms)
 	float hz = 0 ;
 	if(dT_ms != 0) hz = 1000/dT_ms;
 	
-	/*¾²Ö¹¼ì²â*/
+	/*é™æ­¢æ£€æµ‹*/
 	motionless_check(dT_ms);
 
-	/*×ª»»µ¥Î»*/
+	/*è½¬æ¢å•ä½*/
 	for(u8 i =0 ;i<3;i++)
 	{
-		/*ÍÓÂİÒÇ×ª»»µ½¶ÈÃ¿Ãë£¬Á¿³Ì+-2000¶È*/
-		sensor.Gyro_deg[i] = sensor.Gyro_Original[i] *0.061036f ;//  /65535 * 4000; +-2000¶È 0.061
+		/*é™€èºä»ªè½¬æ¢åˆ°åº¦æ¯ç§’ï¼Œé‡ç¨‹+-2000åº¦*/
+		sensor.Gyro_deg[i] = sensor.Gyro_Original[i] *0.061036f ;//  /65535 * 4000; +-2000åº¦ 0.061
 
-		/*ÍÓÂİÒÇ×ª»»µ½»¡¶È¶ÈÃ¿Ãë£¬Á¿³Ì+-2000¶È*/
-		sensor.Gyro_rad[i] = sensor.Gyro_deg[i] *0.01745f;//sensor.Gyro[i] *RANGE_PN2000_TO_RAD ;//  0.001065264436f //Î¢µ÷Öµ 0.0010652f
+		/*é™€èºä»ªè½¬æ¢åˆ°å¼§åº¦åº¦æ¯ç§’ï¼Œé‡ç¨‹+-2000åº¦*/
+		sensor.Gyro_rad[i] = sensor.Gyro_deg[i] *0.01745f;//sensor.Gyro[i] *RANGE_PN2000_TO_RAD ;//  0.001065264436f //å¾®è°ƒå€¼ 0.0010652f
 		sensor.gyro_rps[i] = sensor.Gyro_rad[i];
-		/*¼ÓËÙ¶È¼Æ×ª»»µ½ÀåÃ×Ã¿Æ½·½Ãë£¬Á¿³Ì+-8G*/
+		/*åŠ é€Ÿåº¦è®¡è½¬æ¢åˆ°å˜ç±³æ¯å¹³æ–¹ç§’ï¼Œé‡ç¨‹+-8G*/
 		sensor.accel_mpss[i] = (sensor.Acc_Original[i] * RANGE_PN16G_TO_CMSS ) / 100.0f;
 	}
 }
@@ -58,7 +58,7 @@ void Sensor_Data_Prepare(u8 dT_ms)
 #include "icm20602.h"
 void Sensor_Get()//1ms
 {
-	/*¶ÁÈ¡ÍÓÂİÒÇ¼ÓËÙ¶È¼ÆÊı¾İ*/
+	/*è¯»å–é™€èºä»ªåŠ é€Ÿåº¦è®¡æ•°æ®*/
 	ICM20602_Get6AxisRawData(sensor.Acc_Original, sensor.Gyro_Original);
                              
 } 

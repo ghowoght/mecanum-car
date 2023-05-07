@@ -1,10 +1,10 @@
 #ifndef __SENSOR_BASIC_H
 #define __SENSOR_BASIC_H
 
-//==ÒıÓÃ
+//==å¼•ç”¨
 #include "sys.h"
 
-//==¶¨Òå
+//==å®šä¹‰
 #define OFFSET_AV_NUM 50
 #define GRAVITY_ACC_PN16G    2048
 #define RANGE_PN2000_TO_RAD  0.001065f
@@ -53,8 +53,8 @@ typedef struct
 
 enum ROBOT_STATUS
 {
-	MODE_REMOTE_CTRL = 0, 	// Ò£¿Ø¿ØÖÆ
-	MODE_UART_CTRL,				// ´®¿Ú¿ØÖÆ
+	MODE_REMOTE_CTRL = 0, 	// é¥æ§æ§åˆ¶
+	MODE_UART_CTRL,				// ä¸²å£æ§åˆ¶
 };
 
 typedef struct
@@ -65,8 +65,8 @@ typedef struct
 	u8 motionless;
 	
 	u32 remote_ctrl_timestamp;
-	u8 robot_sta; // »úÆ÷ÈË×´Ì¬
-	u8 low_power; // µçÁ¿
+	u8 robot_sta; // æœºå™¨äººçŠ¶æ€
+	u8 low_power; // ç”µé‡
 	
 } _flag_st;
 extern _flag_st flag;
@@ -82,31 +82,31 @@ extern _sensor_rotate_st sensor_rot ;
 
 typedef struct 
 {
-	//Ğ£×¼²ÎÊı 
+	//æ ¡å‡†å‚æ•° 
 	u8 acc_CALIBRATE;
 	u8 gyr_CALIBRATE;
 	u8 acc_z_auto_CALIBRATE;
 	
-	//Ô­Ê¼Êı¾İ
+	//åŸå§‹æ•°æ®
 	s16 Acc_Original[VEC_XYZ];
 	s16 Gyro_Original[VEC_XYZ];	
 	
 	s16 Acc[VEC_XYZ];
-	s32 Acc_cmss[VEC_XYZ];			//µ¥Î»£ºcm/s2
+	s32 Acc_cmss[VEC_XYZ];			//å•ä½ï¼šcm/s2
 	float Gyro[VEC_XYZ];
-	float Gyro_deg[VEC_XYZ];    //µ¥Î»£º½Ç¶È
-	float Gyro_rad[VEC_XYZ];		//µ¥Î»£º»¡¶È
+	float Gyro_deg[VEC_XYZ];    //å•ä½ï¼šè§’åº¦
+	float Gyro_rad[VEC_XYZ];		//å•ä½ï¼šå¼§åº¦
 	float gyro_rps[3];
 	float accel_mpss[3];
 
 	s16 Tempreature;
-	float Tempreature_C;				//µ¥Î»£º¡æ
+	float Tempreature_C;				//å•ä½ï¼šâ„ƒ
 	
 }_sensor_st;//__attribute__((packed)) 
 
 extern _sensor_st sensor;
 
-//==º¯ÊıÉùÃ÷
+//==å‡½æ•°å£°æ˜
 
 //public
 void Sensor_Data_Prepare(u8 dT_ms);

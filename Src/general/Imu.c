@@ -14,6 +14,7 @@ _imu_st imu_data =  {1,0,0,0,
 					{0,0,0},
 					{0,0,0},
 					 0,0,0};
+uint16_t imu_data_cnt = 0;
 
 float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	/** quaternion of sensor frame relative to auxiliary frame */
 float dq0 = 0.0f, dq1 = 0.0f, dq2 = 0.0f, dq3 = 0.0f;	/** quaternion of sensor frame relative to auxiliary frame */

@@ -205,10 +205,12 @@ int ICM20602_DataReady(void)
 }
 
 #include "Scheduler.h"
+#include "Imu.h"
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 		if(GPIO_Pin == GPIO_PIN_12)
 		{
+			imu_data_cnt++;
 			INT_1ms_Task();
 		}
 	

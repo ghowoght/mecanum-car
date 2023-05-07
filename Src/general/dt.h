@@ -27,4 +27,6 @@ void DataTrans_Wheel(void);
 void DataTrans_Odom(void);
 void DataTrans_Task(uint32_t dT_ms);
 
+void DataTrans_IMU_Raw(void);
+
 #endif

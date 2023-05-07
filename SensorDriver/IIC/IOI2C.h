@@ -4,26 +4,26 @@
  
 extern volatile u8 I2C_FastMode;
 
-//IO·½ÏòÉèÖÃ
+//IOæ–¹å‘è®¾ç½®
 #define SDA_IN()  {GPIOC->MODER&=~(3<<(7*2));GPIOC->MODER|=0<<7*2;}	
 #define SDA_OUT() {GPIOC->MODER&=~(3<<(7*2));GPIOC->MODER|=1<<7*2;} 	
 //void SDA_IN(void);
 //void SDA_OUT(void);
 
 
-//IO²Ù×÷º¯Êý	 
+//IOæ“ä½œå‡½æ•°	 
 #define IIC_SCL    PCout(6) //SCL
 #define IIC_SDA    PCout(7) //SDA	 
-#define READ_SDA   PCin(7)  //ÊäÈëSDA 
+#define READ_SDA   PCin(7)  //è¾“å…¥SDA 
 
-//IICËùÓÐ²Ù×÷º¯Êý 
-int IIC_Start(void);				//·¢ËÍIIC¿ªÊ¼ÐÅºÅ
-void IIC_Stop(void);	  			//·¢ËÍIICÍ£Ö¹ÐÅºÅ
-void IIC_Send_Byte(u8 txd);			//IIC·¢ËÍÒ»¸ö×Ö½Ú
-u8 IIC_Read_Byte(unsigned char ack);//IIC¶ÁÈ¡Ò»¸ö×Ö½Ú
-int IIC_Wait_Ack(void); 				//IICµÈ´ýACKÐÅºÅ
-void IIC_Ack(void);					//IIC·¢ËÍACKÐÅºÅ
-void IIC_NAck(void);				//IIC²»·¢ËÍACKÐÅºÅ
+//IICæ‰€æœ‰æ“ä½œå‡½æ•° 
+int IIC_Start(void);				//å‘é€IICå¼€å§‹ä¿¡å·
+void IIC_Stop(void);	  			//å‘é€IICåœæ­¢ä¿¡å·
+void IIC_Send_Byte(u8 txd);			//IICå‘é€ä¸€ä¸ªå­—èŠ‚
+u8 IIC_Read_Byte(unsigned char ack);//IICè¯»å–ä¸€ä¸ªå­—èŠ‚
+int IIC_Wait_Ack(void); 				//IICç­‰å¾…ACKä¿¡å·
+void IIC_Ack(void);					//IICå‘é€ACKä¿¡å·
+void IIC_NAck(void);				//IICä¸å‘é€ACKä¿¡å·
 
 void IIC_Write_One_Byte(u8 daddr,u8 addr,u8 data);
 u8 IIC_Read_One_Byte(u8 daddr,u8 addr);	 

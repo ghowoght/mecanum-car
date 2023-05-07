@@ -12,7 +12,7 @@ typedef struct
 	float y;//q2;
 	float z;//q3;
 
-	float x_vec[VEC_XYZ];     //X÷·œÚ¡ø
+	float x_vec[VEC_XYZ];     //XËΩ¥ÂêëÈáè
 	float y_vec[VEC_XYZ];
 	float z_vec[VEC_XYZ];
 	float hx_vec[VEC_XYZ];
@@ -43,9 +43,11 @@ typedef struct
 } _imu_st ;
 extern _imu_st imu_data;
 
+extern uint16_t imu_data_cnt;
+
 #define IMU_FILTER_CUTOFF_FREQ	30.0f
 
-//–£◊º ±º‰
+//Ê†°ÂáÜÊó∂Èó¥
 #define ACC_CALC_TIME  3000//ms
 #define GYRO_CALC_TIME   3	//s
 
@@ -53,7 +55,7 @@ extern _imu_st imu_data;
 #define CONSTANTS_ONE_G					9.80665f		/* m/s^2		*/
 #define CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C		1.225f			/* kg/m^3		*/
 #define CONSTANTS_AIR_GAS_CONST				287.1f 			/* J/(kg * K)		*/
-#define CONSTANTS_ABSOLUTE_NULL_CELSIUS			-273.15f		/* ∞C			*/
+#define CONSTANTS_ABSOLUTE_NULL_CELSIUS			-273.15f		/* Áôà			*/
 #define CONSTANTS_RADIUS_OF_EARTH			6371000			/* meters (m)		*/
 
 #define so3_comp_params_Kp 	2.0f

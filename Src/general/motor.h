@@ -14,7 +14,7 @@
 #include "sys.h"
 
 /**
- * Ğ¡³µ×ø±êÏµ
+ * å°è½¦åæ ‡ç³»
  *   +x
  *   |
  * --|--+y
@@ -24,9 +24,9 @@
 
 typedef struct 
 {
-	volatile float linear_x;  // xÖáÏßËÙ¶È m/s
-	volatile float linear_y;  // yÖáÏßËÙ¶È m/s
-	volatile float angular_z; // zÖá½ÇËÙ¶È rad/s ÓÒÊÖ×¼Ôò
+	volatile float linear_x;  // xè½´çº¿é€Ÿåº¦ m/s
+	volatile float linear_y;  // yè½´çº¿é€Ÿåº¦ m/s
+	volatile float angular_z; // zè½´è§’é€Ÿåº¦ rad/s å³æ‰‹å‡†åˆ™
 }vel_st; 
 
 typedef struct
@@ -39,62 +39,62 @@ typedef struct
 
 typedef struct
 {
-	float x;		 // x·½Ïò×ø±ê
-	float y;		 // y·½Ïò×ø±ê
-	float theta; // ·½Ïò½Ç
+	float x;		 // xæ–¹å‘åæ ‡
+	float y;		 // yæ–¹å‘åæ ‡
+	float theta; // æ–¹å‘è§’
 }pose_st;
 
 typedef struct
 {
-	vel_st  vel; 	// ËÙ¶È
-	pose_st pose; // Î»×Ë
+	vel_st  vel; 	// é€Ÿåº¦
+	pose_st pose; // ä½å§¿
 }odom_st;
 
 
-// Ğ¡³µÔË¶¯Ñ§Ä£ĞÍ½á¹¹Ìå
+// å°è½¦è¿åŠ¨å­¦æ¨¡å‹ç»“æ„ä½“
 typedef struct
 {
-	int 	max_rpm_; 						// Ã¿·ÖÖÓ³µÂÖµÄ×î´ó×ªËÙ
-	float max_linear_vel_;			// ×î´óÏßËÙ¶È m/s
-	float max_angular_z_;				// zÖá×î´ó½ÇËÙ¶È rad/s
-	int 	total_wheels_;				// ³µÂÖÊıÁ¿
-	float wheels_x_distance_;		// x·½ÏòÉÏ³µÂÖµÄ¾àÀë				¡üx
-	float wheels_y_distance_;		// y·½ÏòÉÏ³µÂÖµÄ¾àÀë				|-->y
-	float pwm_res_;							// PWMÊä³ö×î´óÖµ
-	float wheel_circumference_;	// ³µÂÖÖÜ³¤
+	int 	max_rpm_; 						// æ¯åˆ†é’Ÿè½¦è½®çš„æœ€å¤§è½¬é€Ÿ
+	float max_linear_vel_;			// æœ€å¤§çº¿é€Ÿåº¦ m/s
+	float max_angular_z_;				// zè½´æœ€å¤§è§’é€Ÿåº¦ rad/s
+	int 	total_wheels_;				// è½¦è½®æ•°é‡
+	float wheels_x_distance_;		// xæ–¹å‘ä¸Šè½¦è½®çš„è·ç¦»				â†‘x
+	float wheels_y_distance_;		// yæ–¹å‘ä¸Šè½¦è½®çš„è·ç¦»				|-->y
+	float pwm_res_;							// PWMè¾“å‡ºæœ€å¤§å€¼
+	float wheel_circumference_;	// è½¦è½®å‘¨é•¿
 	
-	vel_st exp_vel;					// Ğ¡³µµÄÆÚÍûËÙ¶È
-	vel_st fb_vel;					// ²âÁ¿ºÍ½âËãµÃµ½µÄĞ¡³µËÙ¶È
-	motor_st exp_wheel_rpm;	// Ê¹ÓÃÄæÔË¶¯Ñ§Ä£ĞÍ×ª»»µÃµ½µÄÂÖ×ÓµÄÄ¿±ê×ªËÙ
-	motor_st fb_wheel_cmps;	// ±àÂëÆ÷·´À¡Öµ µ¥Î»£ºcm/s
-	motor_st fb_wheel_rpm;	// ±àÂëÆ÷·´À¡Öµ µ¥Î»£ºrad/min
-	motor_st pwm;						// µç»úµÄPWMÊä³öÖµ
+	vel_st exp_vel;					// å°è½¦çš„æœŸæœ›é€Ÿåº¦
+	vel_st fb_vel;					// æµ‹é‡å’Œè§£ç®—å¾—åˆ°çš„å°è½¦é€Ÿåº¦
+	motor_st exp_wheel_rpm;	// ä½¿ç”¨é€†è¿åŠ¨å­¦æ¨¡å‹è½¬æ¢å¾—åˆ°çš„è½®å­çš„ç›®æ ‡è½¬é€Ÿ
+	motor_st fb_wheel_cmps;	// ç¼–ç å™¨åé¦ˆå€¼ å•ä½ï¼šcm/s
+	motor_st fb_wheel_rpm;	// ç¼–ç å™¨åé¦ˆå€¼ å•ä½ï¼šrad/min
+	motor_st pwm;						// ç”µæœºçš„PWMè¾“å‡ºå€¼
 	
-	odom_st  odom;					// Àï³Ì¼ÆÊı¾İ
+	odom_st  odom;					// é‡Œç¨‹è®¡æ•°æ®
 }kinematics_st;
 extern kinematics_st kinematics;
 
-// PID²ÎÊı½á¹¹Ìå
+// PIDå‚æ•°ç»“æ„ä½“
 typedef struct
 {
-	float kp;							// ±ÈÀıÏµÊı
-	float ki;							// »ı·ÖÏµÊı
-	float kd;							// Î¢·ÖÏµÊı
+	float kp;							// æ¯”ä¾‹ç³»æ•°
+	float ki;							// ç§¯åˆ†ç³»æ•°
+	float kd;							// å¾®åˆ†ç³»æ•°
 	
-	float err;						// Îó²î
-	float err_last;				// Ç°Ò»´ÎµÄÎó²î
-	float err_inte;				// Îó²î»ı·Ö
-	float err_diff;				// Îó²îÎ¢·Ö
+	float err;						// è¯¯å·®
+	float err_last;				// å‰ä¸€æ¬¡çš„è¯¯å·®
+	float err_inte;				// è¯¯å·®ç§¯åˆ†
+	float err_diff;				// è¯¯å·®å¾®åˆ†
 
-	float expect;					// ÆÚÍûÖµ
-	float expect_last;		// Ç°Ò»´ÎµÄÄ¿±êÖµ
-	float feedback;				// ·´À¡Öµ
-	float feedback_last;	// Ç°Ò»´ÎµÄ·´À¡Öµ
+	float expect;					// æœŸæœ›å€¼
+	float expect_last;		// å‰ä¸€æ¬¡çš„ç›®æ ‡å€¼
+	float feedback;				// åé¦ˆå€¼
+	float feedback_last;	// å‰ä¸€æ¬¡çš„åé¦ˆå€¼
 	
-	float out;						// PIDÊä³ö
+	float out;						// PIDè¾“å‡º
 }pid_st;
-extern pid_st pid[4];		// ³µÂÖ×ªËÙ¿ØÖÆPID²ÎÊı
-extern pid_st pid_yaw;  // ·½Ïò¿ØÖÆPID²ÎÊı
+extern pid_st pid[4];		// è½¦è½®è½¬é€Ÿæ§åˆ¶PIDå‚æ•°
+extern pid_st pid_yaw;  // æ–¹å‘æ§åˆ¶PIDå‚æ•°
 
 void Kinematics_Init(void);
 void Encoder_Task(u32 dT_us);
@@ -106,12 +106,12 @@ void Motor_Task(u32 dT_us);
 void Exp_Speed_Cal(u32 dT_us);
 void Fb_Speed_Cal(u32 dT_us);
 
-void PID_Controller( u32 dT_us,       // ¿ØÖÆÖÜÆÚ
-										float expect,     // ÆÚÍûÖµ
-										float feedback,   // ·´À¡Öµ
-										pid_st *pid,      // pid²ÎÊı½á¹¹Ìå
-										float inte_d_lim, // µ¥´Î»ı·ÖÏŞ·ù
-										float inte_lim 		// »ı·ÖÏŞ·ù
+void PID_Controller( u32 dT_us,       // æ§åˆ¶å‘¨æœŸ
+										float expect,     // æœŸæœ›å€¼
+										float feedback,   // åé¦ˆå€¼
+										pid_st *pid,      // pidå‚æ•°ç»“æ„ä½“
+										float inte_d_lim, // å•æ¬¡ç§¯åˆ†é™å¹…
+										float inte_lim 		// ç§¯åˆ†é™å¹…
 										);
 										
 float Get_MiMx(float x, float min, float max );

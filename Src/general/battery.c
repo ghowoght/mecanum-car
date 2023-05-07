@@ -1,7 +1,7 @@
 #include "battery.h"
 #include "Sensor_Basic.h"
 
-#define V_RATE (2.5 + 10) / 2.5 // ½µÑ¹±ÈÀı
+#define V_RATE (2.5 + 10) / 2.5 // é™å‹æ¯”ä¾‹
 
 uint32_t ADC_Value[50]; 
 

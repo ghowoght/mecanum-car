@@ -35,10 +35,10 @@ pid_st pid[4];
 pid_st pid_yaw;
 
 /**
- * @brief ÏŞ·ùº¯Êı
- * @param  x                ÊäÈëÊı¾İ
- * @param  min              ×îĞ¡Öµ
- * @param  max              ×î´óÖµ
+ * @brief é™å¹…å‡½æ•°
+ * @param  x                è¾“å…¥æ•°æ®
+ * @param  min              æœ€å°å€¼
+ * @param  max              æœ€å¤§å€¼
  * @return float 
  */
 float Get_MiMx(float x, float min, float max ) 
@@ -47,17 +47,17 @@ float Get_MiMx(float x, float min, float max )
 }
 
 /**
- * @brief ÔË¶¯Ñ§Ä£ĞÍ³õÊ¼»¯
+ * @brief è¿åŠ¨å­¦æ¨¡å‹åˆå§‹åŒ–
  */
 void Kinematics_Init(void)
 {
-	kinematics.max_rpm_ 						= 330; 				// ¿ÕÔØ×ªËÙ330rpm
+	kinematics.max_rpm_ 						= 330; 				// ç©ºè½½è½¬é€Ÿ330rpm
 	kinematics.max_linear_vel_			= 1.3f;
 	kinematics.max_angular_z_				= 3.14f;
 	kinematics.wheels_x_distance_		= 0.17;
 	kinematics.wheels_y_distance_		= 0.19;
 	kinematics.pwm_res_							= 500;
-	kinematics.wheel_circumference_	= 0.2356194;  //ÂÖ×ÓÖÜ³¤
+	kinematics.wheel_circumference_	= 0.2356194;  //è½®å­å‘¨é•¿
 	kinematics.total_wheels_				= 4;
 	
 	kinematics.exp_vel.linear_x  = 0.0;
@@ -69,11 +69,11 @@ void Kinematics_Init(void)
 }
 
 /**
- * @brief PID²ÎÊı³õÊ¼»¯
+ * @brief PIDå‚æ•°åˆå§‹åŒ–
  */
 void PID_Init(void)
 {
-	// µç»úËÙ¶ÈPID²ÎÊı³õÊ¼»¯
+	// ç”µæœºé€Ÿåº¦PIDå‚æ•°åˆå§‹åŒ–
 	for(int i = 0; i < 4; i++)
 	{
 		pid[i].kp							= 0.0015;	
@@ -89,7 +89,7 @@ void PID_Init(void)
 		pid[i].feedback_last	= 0;	
 		pid[i].out						= 0;	
 	}
-	// ·½ÏòPID²ÎÊı³õÊ¼»¯
+	// æ–¹å‘PIDå‚æ•°åˆå§‹åŒ–
 	pid_yaw.kp							= 4;	
 	pid_yaw.ki							= 0;	
 	pid_yaw.kd							= 0.1;	
@@ -105,8 +105,8 @@ void PID_Init(void)
 }
 
 /**
- * @brief ¶ÁÈ¡±àÂëÆ÷Êı¾İ
- * @param  dT_us            ¶ÁÈ¡Ê±¼ä¼ä¸ô
+ * @brief è¯»å–ç¼–ç å™¨æ•°æ®
+ * @param  dT_us            è¯»å–æ—¶é—´é—´éš”
  */
 void Encoder_Task(u32 dT_us)
 {
@@ -132,12 +132,12 @@ void Encoder_Task(u32 dT_us)
 }
 
 /**
- * @brief ÉèÖÃËÙµç»úPWMÊä³ö
+ * @brief è®¾ç½®é€Ÿç”µæœºPWMè¾“å‡º
  */
 void Set_PWM(void)
 {	
-	const int 	ZERO 						= 500; 		// µç»ú¾²Ö¹Ê±µÄÉèÖÃÖµ
-	const float HUNDRED_PERCENT = 500.0f;  // µç»úÂú·ùÊä³öÊ±µÄÉèÖÃÖµ
+	const int 	ZERO 						= 500; 		// ç”µæœºé™æ­¢æ—¶çš„è®¾ç½®å€¼
+	const float HUNDRED_PERCENT = 500.0f;  // ç”µæœºæ»¡å¹…è¾“å‡ºæ—¶çš„è®¾ç½®å€¼
 	
 	TIM1->CCR1 =  kinematics.pwm.motor_1 * HUNDRED_PERCENT + ZERO;
 	TIM1->CCR2 =  kinematics.pwm.motor_2 * HUNDRED_PERCENT + ZERO;
@@ -146,62 +146,62 @@ void Set_PWM(void)
 }
 
 /**
- * @brief µç»ú¿ØÖÆÈÎÎñ
- * @param  dT_us            ¿ØÖÆÖÜÆÚ
+ * @brief ç”µæœºæ§åˆ¶ä»»åŠ¡
+ * @param  dT_us            æ§åˆ¶å‘¨æœŸ
  */
 void Motor_Task(u32 dT_us)
 {
-	Encoder_Task(dT_us); 		// »ñÈ¡±àÂëÆ÷¶ÁÊı
-	Exp_Speed_Cal(dT_us);  	// ¼ÆËãÆÚÍûËÙ¶È
-	Fb_Speed_Cal(dT_us); 		// ¼ÆËã·´À¡ËÙ¶È
+	Encoder_Task(dT_us); 		// è·å–ç¼–ç å™¨è¯»æ•°
+	Exp_Speed_Cal(dT_us);  	// è®¡ç®—æœŸæœ›é€Ÿåº¦
+	Fb_Speed_Cal(dT_us); 		// è®¡ç®—åé¦ˆé€Ÿåº¦
 	
-	// ×óÇ°ÂÖPID¿ØÖÆ
-	PID_Controller(	dT_us,  													// ¿ØÖÆÖÜÆÚ
-									kinematics.exp_wheel_rpm.motor_1, // ÆÚÍûÖµ
-									kinematics.fb_wheel_rpm.motor_1, 	// ·´À¡Öµ
-									&pid[FL], 												// PID²ÎÊı
-									0,																// µ¥´Î»ı·ÖÏŞ·ù
-									0);																// »ı·ÖÏŞ·ù
-	pid[FL].out  = Get_MiMx(pid[FL].out, -1.0, 1.0); 	// Êä³öÏŞ·ù
+	// å·¦å‰è½®PIDæ§åˆ¶
+	PID_Controller(	dT_us,  													// æ§åˆ¶å‘¨æœŸ
+									kinematics.exp_wheel_rpm.motor_1, // æœŸæœ›å€¼
+									kinematics.fb_wheel_rpm.motor_1, 	// åé¦ˆå€¼
+									&pid[FL], 												// PIDå‚æ•°
+									0,																// å•æ¬¡ç§¯åˆ†é™å¹…
+									0);																// ç§¯åˆ†é™å¹…
+	pid[FL].out  = Get_MiMx(pid[FL].out, -1.0, 1.0); 	// è¾“å‡ºé™å¹…
 	
-	// ÓÒÇ°ÂÖPID¿ØÖÆ
-	PID_Controller(	dT_us,  													// ¿ØÖÆÖÜÆÚ
-									kinematics.exp_wheel_rpm.motor_2, // ÆÚÍûÖµ
-									kinematics.fb_wheel_rpm.motor_2, 	// ·´À¡Öµ
-									&pid[FR], 												// PID²ÎÊı
-									0,																// µ¥´Î»ı·ÖÏŞ·ù
-									0);																// »ı·ÖÏŞ·ù
-	pid[FR].out  = Get_MiMx(pid[FR].out, -1.0, 1.0); 	// Êä³öÏŞ·ù
+	// å³å‰è½®PIDæ§åˆ¶
+	PID_Controller(	dT_us,  													// æ§åˆ¶å‘¨æœŸ
+									kinematics.exp_wheel_rpm.motor_2, // æœŸæœ›å€¼
+									kinematics.fb_wheel_rpm.motor_2, 	// åé¦ˆå€¼
+									&pid[FR], 												// PIDå‚æ•°
+									0,																// å•æ¬¡ç§¯åˆ†é™å¹…
+									0);																// ç§¯åˆ†é™å¹…
+	pid[FR].out  = Get_MiMx(pid[FR].out, -1.0, 1.0); 	// è¾“å‡ºé™å¹…
 	
-	// ×óºóÂÖPID¿ØÖÆ
-	PID_Controller(	dT_us,  													// ¿ØÖÆÖÜÆÚ
-									kinematics.exp_wheel_rpm.motor_3, // ÆÚÍûÖµ
-									kinematics.fb_wheel_rpm.motor_3, 	// ·´À¡Öµ
-									&pid[BL], 												// PID²ÎÊı
-									0,																// µ¥´Î»ı·ÖÏŞ·ù
-									0);																// »ı·ÖÏŞ·ù
-	pid[BL].out  = Get_MiMx(pid[BL].out, -1.0, 1.0); 	// Êä³öÏŞ·ù
+	// å·¦åè½®PIDæ§åˆ¶
+	PID_Controller(	dT_us,  													// æ§åˆ¶å‘¨æœŸ
+									kinematics.exp_wheel_rpm.motor_3, // æœŸæœ›å€¼
+									kinematics.fb_wheel_rpm.motor_3, 	// åé¦ˆå€¼
+									&pid[BL], 												// PIDå‚æ•°
+									0,																// å•æ¬¡ç§¯åˆ†é™å¹…
+									0);																// ç§¯åˆ†é™å¹…
+	pid[BL].out  = Get_MiMx(pid[BL].out, -1.0, 1.0); 	// è¾“å‡ºé™å¹…
 	
-	// ÓÒºóÂÖPID¿ØÖÆ
-	PID_Controller(	dT_us,  													// ¿ØÖÆÖÜÆÚ
-									kinematics.exp_wheel_rpm.motor_4, // ÆÚÍûÖµ
-									kinematics.fb_wheel_rpm.motor_4, 	// ·´À¡Öµ
-									&pid[BR], 												// PID²ÎÊı
-									0,																// µ¥´Î»ı·ÖÏŞ·ù
-									0);																// »ı·ÖÏŞ·ù
-	pid[BR].out  = Get_MiMx(pid[BR].out, -1.0, 1.0); 	// Êä³öÏŞ·ù
+	// å³åè½®PIDæ§åˆ¶
+	PID_Controller(	dT_us,  													// æ§åˆ¶å‘¨æœŸ
+									kinematics.exp_wheel_rpm.motor_4, // æœŸæœ›å€¼
+									kinematics.fb_wheel_rpm.motor_4, 	// åé¦ˆå€¼
+									&pid[BR], 												// PIDå‚æ•°
+									0,																// å•æ¬¡ç§¯åˆ†é™å¹…
+									0);																// ç§¯åˆ†é™å¹…
+	pid[BR].out  = Get_MiMx(pid[BR].out, -1.0, 1.0); 	// è¾“å‡ºé™å¹…
 	
-	// ½«PID¼ÆËã½á¹û×ª»»ÎªPWMÕ¼¿Õ±È
+	// å°†PIDè®¡ç®—ç»“æœè½¬æ¢ä¸ºPWMå ç©ºæ¯”
 	kinematics.pwm.motor_1 = -pid[FL].out;
 	kinematics.pwm.motor_2 = -pid[FR].out;
 	kinematics.pwm.motor_3 = -pid[BL].out;
 	kinematics.pwm.motor_4 = -pid[BR].out;
-	// Êä³öµ½µç»ú
+	// è¾“å‡ºåˆ°ç”µæœº
 	Set_PWM();
 }
 
 /**
- * @brief ¼ÆËãÆÚÍûËÙ¶È
+ * @brief è®¡ç®—æœŸæœ›é€Ÿåº¦
  */
 void Exp_Speed_Cal(u32 dT_us)
 {
@@ -213,22 +213,22 @@ void Exp_Speed_Cal(u32 dT_us)
 	float y_rpm;
 	float tan_rpm;
 	
-	// ½« m/s ×ª»»Îª m/min
+	// å°† m/s è½¬æ¢ä¸º m/min
 	linear_vel_x_mins = kinematics.exp_vel.linear_x * 60.0f;
 	linear_vel_y_mins = kinematics.exp_vel.linear_y * 60.0f;
 
-	// ½« rad/s ×ª»»Îª rad/min
+	// å°† rad/s è½¬æ¢ä¸º rad/min
 	angular_vel_z_mins = kinematics.exp_vel.angular_z * 60.0f;
 
-	// ÇĞÏòËÙ¶È
+	// åˆ‡å‘é€Ÿåº¦
 	tangential_vel = angular_vel_z_mins * ((kinematics.wheels_x_distance_ / 2) + (kinematics.wheels_y_distance_ / 2));
 
 	x_rpm = linear_vel_x_mins / kinematics.wheel_circumference_;
 	y_rpm = linear_vel_y_mins / kinematics.wheel_circumference_;
 //	tan_rpm = tangential_vel / kinematics.wheel_circumference_;
 	
-	// µ±ÓÃ×ËÌ¬´«¸ĞÆ÷²âÁ¿µÃµ½µÄzÖá½ÇËÙ¶ÈºÍÓÃ±àÂëÆ÷Êı¾İ½âËãµÃµ½µÄ½ÇËÙ¶ÈÏà²îºÜ´óÊ±£¬
-	// ¿ÉÈÏÎªÂÖ×Ó´ò»¬
+	// å½“ç”¨å§¿æ€ä¼ æ„Ÿå™¨æµ‹é‡å¾—åˆ°çš„zè½´è§’é€Ÿåº¦å’Œç”¨ç¼–ç å™¨æ•°æ®è§£ç®—å¾—åˆ°çš„è§’é€Ÿåº¦ç›¸å·®å¾ˆå¤§æ—¶ï¼Œ
+	// å¯è®¤ä¸ºè½®å­æ‰“æ»‘
 	if((kinematics.exp_vel.linear_x == 0 
 		&& kinematics.exp_vel.linear_y == 0 
 		&& kinematics.exp_vel.angular_z == 0)
@@ -239,13 +239,13 @@ void Exp_Speed_Cal(u32 dT_us)
 	}
 	else
 	{
-		PID_Controller(	dT_us,  											// ¿ØÖÆÖÜÆÚ us
-										kinematics.exp_vel.angular_z, // Ä¿±êÖµ
-										sensor.gyro_rps[Z], 					// ·´À¡Öµ
-										&pid_yaw, 										// PID²ÎÊı
-										0,														// µ¥´Î»ı·ÖÏŞ·ù
-										0);														// »ı·ÖÏŞ·ù
-		// Êä³öÏŞ·ù
+		PID_Controller(	dT_us,  											// æ§åˆ¶å‘¨æœŸ us
+										kinematics.exp_vel.angular_z, // ç›®æ ‡å€¼
+										sensor.gyro_rps[Z], 					// åé¦ˆå€¼
+										&pid_yaw, 										// PIDå‚æ•°
+										0,														// å•æ¬¡ç§¯åˆ†é™å¹…
+										0);														// ç§¯åˆ†é™å¹…
+		// è¾“å‡ºé™å¹…
 		pid_yaw.out = Get_MiMx( pid_yaw.out, 
 													 -kinematics.max_rpm_, 
 													  kinematics.max_rpm_);
@@ -253,28 +253,28 @@ void Exp_Speed_Cal(u32 dT_us)
 	
 	tan_rpm = pid_yaw.out;
 	
-	// Ê¹ÓÃÄæÔË¶¯Ñ§Ä£ĞÍ¼ÆËã³µÂÖµÄÆÚÍûËÙ¶È
-	// ×óÇ°ÂÖµç»ú
+	// ä½¿ç”¨é€†è¿åŠ¨å­¦æ¨¡å‹è®¡ç®—è½¦è½®çš„æœŸæœ›é€Ÿåº¦
+	// å·¦å‰è½®ç”µæœº
 	kinematics.exp_wheel_rpm.motor_1 = x_rpm - y_rpm - tan_rpm;
 	kinematics.exp_wheel_rpm.motor_1 = Get_MiMx(kinematics.exp_wheel_rpm.motor_1, -kinematics.max_rpm_, kinematics.max_rpm_);
 
-	// ÓÒÇ°ÂÖµç»ú
+	// å³å‰è½®ç”µæœº
 	kinematics.exp_wheel_rpm.motor_2 = x_rpm + y_rpm + tan_rpm;
 	kinematics.exp_wheel_rpm.motor_2 = Get_MiMx(kinematics.exp_wheel_rpm.motor_2, -kinematics.max_rpm_, kinematics.max_rpm_);
 
-	// ×óºóÂÖµç»ú
+	// å·¦åè½®ç”µæœº
 	kinematics.exp_wheel_rpm.motor_3 = x_rpm + y_rpm - tan_rpm;
 	kinematics.exp_wheel_rpm.motor_3 = Get_MiMx(kinematics.exp_wheel_rpm.motor_3, -kinematics.max_rpm_, kinematics.max_rpm_);
 
-	// ÓÒºóÂÖµç»ú
+	// å³åè½®ç”µæœº
 	kinematics.exp_wheel_rpm.motor_4 = x_rpm - y_rpm + tan_rpm;
 	kinematics.exp_wheel_rpm.motor_4 = Get_MiMx(kinematics.exp_wheel_rpm.motor_4, -kinematics.max_rpm_, kinematics.max_rpm_);
 
 }
 
 /**
- * @brief ¼ÆËã·´À¡ËÙ¶È
- * @param  dT_us            ¼ÆËãÖÜÆÚ
+ * @brief è®¡ç®—åé¦ˆé€Ÿåº¦
+ * @param  dT_us            è®¡ç®—å‘¨æœŸ
  */
 void Fb_Speed_Cal(u32 dT_us)
 {
@@ -287,39 +287,39 @@ void Fb_Speed_Cal(u32 dT_us)
 	float rpm3 = kinematics.fb_wheel_rpm.motor_3;
 	float rpm4 = kinematics.fb_wheel_rpm.motor_4;
 
-	// ½«Æ½¾ùÃ¿·ÖÖÓ×ªËÙ(rpm)×ª»»ÎªÆ½¾ùÃ¿Ãë×ªËÙ(rps)
+	// å°†å¹³å‡æ¯åˆ†é’Ÿè½¬é€Ÿ(rpm)è½¬æ¢ä¸ºå¹³å‡æ¯ç§’è½¬é€Ÿ(rps)
 	average_rps_x = ( rpm1 + rpm2 + rpm3 + rpm4) / kinematics.total_wheels_ / 60.0f;
 	average_rps_y = (-rpm1 + rpm2 + rpm3 - rpm4) / kinematics.total_wheels_ / 60.0f;
 	average_rps_a = (-rpm1 + rpm2 - rpm3 + rpm4) / kinematics.total_wheels_ / 60.0f;
 	
-	// ½«rps×ª»»Îªm/s
+	// å°†rpsè½¬æ¢ä¸ºm/s
 	kinematics.fb_vel.linear_x  =  average_rps_x * kinematics.wheel_circumference_; // m/s
 	kinematics.fb_vel.linear_y  =  average_rps_y * kinematics.wheel_circumference_; // m/s
 	kinematics.fb_vel.angular_z = (average_rps_a * kinematics.wheel_circumference_) 
 															/ ((kinematics.wheels_x_distance_ / 2) + (kinematics.wheels_y_distance_ / 2)); //  rad/s
 
-	// ¸üĞÂÀï³Ì¼ÆÊı¾İ
+	// æ›´æ–°é‡Œç¨‹è®¡æ•°æ®
 	kinematics.odom.vel.linear_x  = kinematics.fb_vel.linear_x;
 	kinematics.odom.vel.linear_y  = kinematics.fb_vel.linear_y;	
 	kinematics.odom.vel.angular_z = sensor.gyro_rps[Z];	
 	
 	kinematics.odom.pose.theta = imu_data.yaw;	
 	float dT_s = dT_us * 1e-6f;
-	float theta_rad = kinematics.odom.pose.theta / 180.0f * 3.1415926535f; // ×ª»¯Îª»¡¶È
-	// º½Î»ÍÆËã
+	float theta_rad = kinematics.odom.pose.theta / 180.0f * 3.1415926535f; // è½¬åŒ–ä¸ºå¼§åº¦
+	// èˆªä½æ¨ç®—
 	kinematics.odom.pose.x += (kinematics.odom.vel.linear_x * my_cos(theta_rad) + kinematics.odom.vel.linear_y * my_sin(theta_rad)) * dT_s;
 	kinematics.odom.pose.y += (kinematics.odom.vel.linear_x * my_sin(theta_rad) + kinematics.odom.vel.linear_y * my_cos(theta_rad)) * dT_s;
 
 
 }
 /**
- * @brief PID¿ØÖÆÆ÷
- * @param  dT_us            ¿ØÖÆÖÜÆÚ
- * @param  expect           ÆÚÍûÖµ
- * @param  feedback         ·´À¡Öµ
- * @param  pid              pid²ÎÊı½á¹¹Ìå
- * @param  inte_d_lim       µ¥´Î»ı·ÖÏŞ·ù
- * @param  inte_lim         »ı·ÖÏŞ·ù
+ * @brief PIDæ§åˆ¶å™¨
+ * @param  dT_us            æ§åˆ¶å‘¨æœŸ
+ * @param  expect           æœŸæœ›å€¼
+ * @param  feedback         åé¦ˆå€¼
+ * @param  pid              pidå‚æ•°ç»“æ„ä½“
+ * @param  inte_d_lim       å•æ¬¡ç§¯åˆ†é™å¹…
+ * @param  inte_lim         ç§¯åˆ†é™å¹…
  */
 void PID_Controller(u32     dT_us,
 										float   expect, 
@@ -332,17 +332,17 @@ void PID_Controller(u32     dT_us,
 	float dT_s = (float)dT_us * 1e-6f;
 	float freq = safe_div(1.0f, dT_s, 0);
 	
-	// ¼ÆËãÆ«²î
+	// è®¡ç®—åå·®
 	pid->err = expect - feedback;
 	
-	// »ı·Ö
+	// ç§¯åˆ†
 	pid->err_inte += Get_MiMx(pid->err,		   -inte_d_lim, inte_d_lim) * dT_s;
-	pid->err_inte  = Get_MiMx(pid->err_inte, -inte_lim, 	 inte_lim ); // »ı·ÖÏŞ·ù
+	pid->err_inte  = Get_MiMx(pid->err_inte, -inte_lim, 	 inte_lim ); // ç§¯åˆ†é™å¹…
 	
-	// Î¢·Ö
+	// å¾®åˆ†
 	pid->err_diff = (pid->err - pid->err_last) * freq;
 	
-	// ±ÈÀı¡¢»ı·Ö¡¢Î¢·ÖÏà¼Ó
+	// æ¯”ä¾‹ã€ç§¯åˆ†ã€å¾®åˆ†ç›¸åŠ 
 	pid->out += pid->kp * pid->err 
 					  + pid->ki * pid->err_inte 
 					  + pid->kd * pid->err_diff;	
