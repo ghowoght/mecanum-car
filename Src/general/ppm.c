@@ -14,7 +14,7 @@
 #include "UserCtrl.h"
 #include "Sensor_Basic.h"
 
-extern TIM_HandleTypeDef htim16;
+extern TIM_HandleTypeDef htim17;
 
 #define PULSE_MIN   800
 #define PULSE_MAX   2200
@@ -24,7 +24,7 @@ void PPM_Decode(void)
 	static int periodVal[2] = {0};
 	int pulseHigh = 0;
 	
-	periodVal[0] = TIM16->CCR1;
+	periodVal[0] = TIM17->CCR1;
 	if(periodVal[0] > periodVal[1])
 	{
 		pulseHigh = (periodVal[0] - periodVal[1]);
@@ -112,11 +112,11 @@ void RemoteCtrl_Task(uint32_t dT_ms)
 			float maxOme = 3.14f; // 最大角速度
 			if(CH[5] < 1100){
 				maxVel = 1.3f;
-				maxOme = 3.14f;
+				maxOme = 2.35f;
 			}
 			else if(CH[5] > 1900){
 				maxVel = 0.4f;
-				maxOme = 2.35f;
+				maxOme = 1.57f;
 			}
 			else{
 				maxVel = 0.8f;
@@ -138,7 +138,7 @@ void RemoteCtrl_Task(uint32_t dT_ms)
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-	if(htim == &htim16)
+	if(htim == &htim17)
 	{
 		PPM_Decode();
 	}
